@@ -36,7 +36,7 @@ except Exception as e:  # pragma: no cover
     ) from e
 
 try:
-    from ..models import MyAction, MyObservation
+    from models import MyAction, MyObservation
     from .my_env_environment import MyEnvironment
 except ModuleNotFoundError:
     from models import MyAction, MyObservation
