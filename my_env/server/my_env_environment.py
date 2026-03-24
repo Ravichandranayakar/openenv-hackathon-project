@@ -80,7 +80,10 @@ class TicTacToeEnvironment(Environment):
         return 0
 
 
-
+    @property
+    def state(self) -> State:
+        """Return current episode state."""
+        return self._state
 
 
 
