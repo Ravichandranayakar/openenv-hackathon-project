@@ -7,8 +7,7 @@
 """
 My Env Environment Implementation.
 
-A simple test environment that echoes back messages sent to it.
-Perfect for testing HTTP server infrastructure.
+a tic-tac-toe game implementaion
 """
 
 from uuid import uuid4
@@ -17,88 +16,163 @@ from openenv.core.env_server.interfaces import Environment
 from openenv.core.env_server.types import State
 
 try:
-    from ..models import MyAction, MyObservation
+    from ..models import TicTacToeAction, TicTacToeObservation
 except ImportError:
-    from models import MyAction, MyObservation
+    from models import TicTacToeAction, TicTacToeObservation
 
 
-class MyEnvironment(Environment):
-    """
-    A simple echo environment that echoes back messages.
-
-    This environment is designed for testing the HTTP server infrastructure.
-    It maintains minimal state and simply echoes back whatever message it receives.
-
-    Example:
-        >>> env = MyEnvironment()
-        >>> obs = env.reset()
-        >>> print(obs.echoed_message)  # "My Env environment ready!"
-        >>>
-        >>> obs = env.step(MyAction(message="Hello"))
-        >>> print(obs.echoed_message)  # "Hello"
-        >>> print(obs.message_length)  # 5
-    """
-
-    # Enable concurrent WebSocket sessions.
-    # Set to True if your environment isolates state between instances.
-    # When True, multiple WebSocket clients can connect simultaneously, each
-    # getting their own environment instance (when using factory mode in app.py).
-    SUPPORTS_CONCURRENT_SESSIONS: bool = True
-
+class TicTacToeEnvironment(Environment):
     def __init__(self):
-        """Initialize the my_env environment."""
-        self._state = State(episode_id=str(uuid4()), step_count=0)
-        self._reset_count = 0
+        self.borad = [[0]*3 for _ in range(3)]
+        self.current_player = 1 # 1=agent , 2=opponent
+        
+    def reset(self) -> TicTacToeObservation:
+        self.borad = [[0]*3 for _ in range(3)]
+        self.current_player = 1
+        return self._get_observation("new game started.")
+    
+    def step(self , action: TicTacToeAction) -> TicTacToeObservation:
+        try:
+            row , col = action.row, action.col
+            
+            if not(0<= row<3 and 0 <=col < 3):
+                return self._get_observation("invalid move: out of the bounds." , penalty=-1.0)
+            if self.borad[row][col] !=0:
+                return self._get_observation("Invalide move:" , penalty=-1.0)
 
-    def reset(self) -> MyObservation:
-        """
-        Reset the environment.
+        
+            self.board[row][col] = self.current_player
+            
+            winner = self._check_winner()
+            if winner:
+                reward = 1.0 if winner ==1 else -1.0
+                return self._get_observation(f"player {winner} wins!" , done=True , reward=reward , winner=winner)
+ 
+            if all(cell != 0 for row in self.board for cell in row):
+                return self._get_observation("Draw!", done=True, reward=0.0, winner=3)
+             
+            self.current_player = 2 if self.current_player == 1 else 1
+            return self._get_observation("Move accepted.")
+        except Exception as e:
+            return self._get_observation(f"Error: {str(e)}", penalty=-0.5)
 
-        Returns:
-            MyObservation with a ready message
-        """
-        self._state = State(episode_id=str(uuid4()), step_count=0)
-        self._reset_count += 1
 
-        return MyObservation(
-            echoed_message="My Env environment ready!",
-            message_length=0,
-            done=False,
-            reward=0.0,
+
+    def _get_observation(self, message: str, done: bool = False, reward: float = 0.0, winner: int = 0, penalty: float = 0.0) -> TicTacToeObservation:
+        # Always return a valid observation, even on error
+        return TicTacToeObservation(
+            board=self.board,
+            done=done,
+            reward=reward + penalty,
+            message=message,
+            winner=winner
         )
 
-    def step(self, action: MyAction) -> MyObservation:  # type: ignore[override]
-        """
-        Execute a step in the environment by echoing the message.
+    def _check_winner(self) -> int:
+        # Returns 1 if agent wins, 2 if opponent wins, 0 otherwise
+        lines = self.board + [list(col) for col in zip(*self.board)]  # rows and columns
+        lines += [[self.board[i][i] for i in range(3)], [self.board[i][2-i] for i in range(3)]]  # diagonals
+        for line in lines:
+            if line == [1, 1, 1]:
+                return 1
+            if line == [2, 2, 2]:
+                return 2
+        return 0
 
-        Args:
-            action: MyAction containing the message to echo
 
-        Returns:
-            MyObservation with the echoed message and its length
-        """
-        self._state.step_count += 1
 
-        message = action.message
-        length = len(message)
 
-        # Simple reward: longer messages get higher rewards
-        reward = length * 0.1
 
-        return MyObservation(
-            echoed_message=message,
-            message_length=length,
-            done=False,
-            reward=reward,
-            metadata={"original_message": message, "step": self._state.step_count},
-        )
 
-    @property
-    def state(self) -> State:
-        """
-        Get the current environment state.
 
-        Returns:
-            Current State with episode_id and step_count
-        """
-        return self._state
+
+
+
+
+
+
+
+
+
+
+
+# class MyEnvironment(Environment):
+#     """
+#     A simple echo environment that echoes back messages.
+
+#     This environment is designed for testing the HTTP server infrastructure.
+#     It maintains minimal state and simply echoes back whatever message it receives.
+
+#     Example:
+#         >>> env = MyEnvironment()
+#         >>> obs = env.reset()
+#         >>> print(obs.echoed_message)  # "My Env environment ready!"
+#         >>>
+#         >>> obs = env.step(MyAction(message="Hello"))
+#         >>> print(obs.echoed_message)  # "Hello"
+#         >>> print(obs.message_length)  # 5
+#     """
+
+#     # Enable concurrent WebSocket sessions.
+#     # Set to True if your environment isolates state between instances.
+#     # When True, multiple WebSocket clients can connect simultaneously, each
+#     # getting their own environment instance (when using factory mode in app.py).
+#     SUPPORTS_CONCURRENT_SESSIONS: bool = True
+
+#     def __init__(self):
+#         """Initialize the my_env environment."""
+#         self._state = State(episode_id=str(uuid4()), step_count=0)
+#         self._reset_count = 0
+
+#     def reset(self) -> MyObservation:
+#         """
+#         Reset the environment.
+
+#         Returns:
+#             MyObservation with a ready message
+#         """
+#         self._state = State(episode_id=str(uuid4()), step_count=0)
+#         self._reset_count += 1
+
+#         return MyObservation(
+#             echoed_message="My Env environment ready!",
+#             message_length=0,
+#             done=False,
+#             reward=0.0,
+#         )
+
+#     def step(self, action: MyAction) -> MyObservation:  # type: ignore[override]
+#         """
+#         Execute a step in the environment by echoing the message.
+
+#         Args:
+#             action: MyAction containing the message to echo
+
+#         Returns:
+#             MyObservation with the echoed message and its length
+#         """
+#         self._state.step_count += 1
+
+#         message = action.message
+#         length = len(message)
+
+#         # Simple reward: longer messages get higher rewards
+#         reward = length * 0.1
+
+#         return MyObservation(
+#             echoed_message=message,
+#             message_length=length,
+#             done=False,
+#             reward=reward,
+#             metadata={"original_message": message, "step": self._state.step_count},
+#         )
+
+#     @property
+#     def state(self) -> State:
+#         """
+#         Get the current environment state.
+
+#         Returns:
+#             Current State with episode_id and step_count
+#         """
+#         return self._state

@@ -36,22 +36,19 @@ except Exception as e:  # pragma: no cover
     ) from e
 
 try:
-    from models import MyAction, MyObservation
-    from .my_env_environment import MyEnvironment
+    from models import TicTacToeAction, TicTacToeObservation
+    from .my_env_environment import TicTacToeEnvironment
 except ModuleNotFoundError:
-    from models import MyAction, MyObservation
-    from server.my_env_environment import MyEnvironment
+    from models import TicTacToeAction , TicTacToeObservation
+    from server.my_env_environment import TicTacToeEnvironment
 
 
 # Create the app with web interface and README integration
 app = create_app(
-    MyEnvironment,
-    MyAction,
-    MyObservation,
-    env_name="my_env",
-    max_concurrent_envs=1,  # increase this number to allow more concurrent WebSocket sessions
+    env_class=TicTacToeEnvironment,
+    action_type=TicTacToeAction,
+    observation_type=TicTacToeObservation,
 )
-
 
 def main(host: str = "0.0.0.0", port: int = 8000):
     """
