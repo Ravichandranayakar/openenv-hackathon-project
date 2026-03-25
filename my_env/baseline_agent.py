@@ -9,8 +9,15 @@ import random
 import argparse
 from typing import List
 
-from client import TicTacToeEnv
-from models import TicTacToeAction
+# Support both in-repo and standalone imports
+try:
+    # In-repo imports (when running from OpenEnv repository)
+    from .client import TicTacToeEnv
+    from .models import TicTacToeAction
+except ImportError:
+    # Standalone imports (when environment is standalone with openenv from pip)
+    from client import TicTacToeEnv
+    from models import TicTacToeAction
 
 
 class RandomAgent:

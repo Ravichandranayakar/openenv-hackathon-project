@@ -11,7 +11,13 @@ import random
 from openenv.core.env_server.interfaces import Environment
 from openenv.core.env_server.types import State
 
-from ..models import TicTacToeAction, TicTacToeObservation
+# Support both in-repo and standalone imports
+try:
+    # In-repo imports (when running from OpenEnv repository)
+    from ..models import TicTacToeAction, TicTacToeObservation
+except ImportError:
+    # Standalone imports (when environment is standalone with openenv from pip)
+    from models import TicTacToeAction, TicTacToeObservation
 
 
 class TicTacToeEnvironment(Environment):

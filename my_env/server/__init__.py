@@ -6,6 +6,12 @@
 
 """My Env environment server components."""
 
-from .my_env_environment import TicTacToeEnvironment
+# Support both in-repo and standalone imports
+try:
+    # In-repo imports
+    from .my_env_environment import TicTacToeEnvironment
+except ImportError:
+    # Standalone imports
+    from server.my_env_environment import TicTacToeEnvironment
 
 __all__ = ["TicTacToeEnvironment"]

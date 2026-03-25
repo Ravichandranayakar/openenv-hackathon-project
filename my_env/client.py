@@ -5,7 +5,14 @@ Provides type-safe client for interacting with environment over HTTP/WebSocket.
 """
 
 from openenv.core import EnvClient
-from models import TicTacToeAction, TicTacToeObservation
+
+# Support both in-repo and standalone imports
+try:
+    # In-repo imports (when running from OpenEnv repository)
+    from .models import TicTacToeAction, TicTacToeObservation
+except ImportError:
+    # Standalone imports (when environment is standalone with openenv from pip)
+    from models import TicTacToeAction, TicTacToeObservation
 
 
 class TicTacToeEnv(EnvClient[TicTacToeAction, TicTacToeObservation, dict]):

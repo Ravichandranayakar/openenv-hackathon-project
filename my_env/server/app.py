@@ -5,8 +5,16 @@ Provides OpenEnv-compliant REST API with standard and custom endpoints.
 """
 
 from openenv.core.env_server.http_server import create_app
-from ..models import TicTacToeAction, TicTacToeObservation
-from .my_env_environment import TicTacToeEnvironment
+
+# Support both in-repo and standalone imports
+try:
+    # In-repo imports (when running from OpenEnv repository)
+    from ..models import TicTacToeAction, TicTacToeObservation
+    from .my_env_environment import TicTacToeEnvironment
+except ImportError:
+    # Standalone imports (when environment is standalone with openenv from pip)
+    from models import TicTacToeAction, TicTacToeObservation
+    from server.my_env_environment import TicTacToeEnvironment
 
 
 #Create base app - provides /reset, /step, /state, /schema, /ws automatically
