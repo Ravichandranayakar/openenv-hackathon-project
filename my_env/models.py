@@ -24,4 +24,4 @@ class TicTacToeObservation(Observation):
     message: str = Field(..., description="Status message")
     winner: int = Field(0, description="0=none, 1=agent, 2=opponent, 3=draw")
     task_id: int = Field(0, description="Task level: 1-3")
-    opponent_strength: str = Field("random", description="Opponent: random/strategic/optimal")
+    opponent_strength: str = Field("random", description="Opponent: random/strategic/optimal") 
