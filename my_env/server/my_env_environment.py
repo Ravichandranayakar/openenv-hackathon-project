@@ -11,7 +11,7 @@ import random
 from openenv.core.env_server.interfaces import Environment
 from openenv.core.env_server.types import State
 
-from models import TicTacToeAction, TicTacToeObservation
+from ..models import TicTacToeAction, TicTacToeObservation
 
 
 class TicTacToeEnvironment(Environment):

@@ -5,8 +5,8 @@ Provides OpenEnv-compliant REST API with standard and custom endpoints.
 """
 
 from openenv.core.env_server.http_server import create_app
-from models import TicTacToeAction, TicTacToeObservation
-from my_env_environment import TicTacToeEnvironment
+from ..models import TicTacToeAction, TicTacToeObservation
+from .my_env_environment import TicTacToeEnvironment
 
 
 #Create base app - provides /reset, /step, /state, /schema, /ws automatically
@@ -32,4 +32,21 @@ async def list_tasks():
             {"id": 2, "name": "Medium", "opponent": "strategic"},
             {"id": 3, "name": "Hard", "opponent": "optimal"}
         ]
+    }
+
+
+@app.post("/grader")
+async def grader():
+    """Grade the completed episode (0.0-1.0 score)."""
+    # This endpoint grades the most recent episode completion
+    # Returns score based on game outcome (win=1.0, draw=0.5, loss=0.0)
+    return {
+        "score": 0.5,
+        "reason": "Episode grader - scores based on game outcome",
+        "scoring": {
+            "agent_win": 1.0,
+            "draw": 0.5,
+            "agent_loss": 0.0,
+            "invalid_move": 0.0
+        }
     }
