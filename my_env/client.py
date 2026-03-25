@@ -4,47 +4,28 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 
-"""My Env Environment Client."""
-
-from typing import Dict
+"""TicTacToe OpenEnv Environment Client."""
 
 from openenv.core import EnvClient
-from openenv.core.client_types import StepResult
-from openenv.core.env_server.types import State
-
-from .models import MyAction, MyObservation
+from .models import TicTacToeAction, TicTacToeObservation
 
 
-class MyEnv(
-    EnvClient[MyAction, MyObservation, State]
-):
+class TicTacToeEnv(EnvClient[TicTacToeAction, TicTacToeObservation, dict]):
     """
-    Client for the My Env Environment.
+    Client for the Tic-Tac-Toe Environment.
 
-    This client maintains a persistent WebSocket connection to the environment server,
-    enabling efficient multi-step interactions with lower latency.
-    Each client instance has its own dedicated environment session on the server.
+    Maintains a persistent WebSocket connection to the environment server
+    for efficient multi-step interactions.
 
     Example:
-        >>> # Connect to a running server
-        >>> with MyEnv(base_url="http://localhost:8000") as client:
-        ...     result = client.reset()
-        ...     print(result.observation.echoed_message)
-        ...
-        ...     result = client.step(MyAction(message="Hello!"))
-        ...     print(result.observation.echoed_message)
-
-    Example with Docker:
-        >>> # Automatically start container and connect
-        >>> client = MyEnv.from_docker_image("my_env-env:latest")
-        >>> try:
-        ...     result = client.reset()
-        ...     result = client.step(MyAction(message="Test"))
-        ... finally:
-        ...     client.close()
+        >>> with TicTacToeEnv(base_url="http://localhost:8000").sync() as env:
+        ...     result = env.reset()
+        ...     action = TicTacToeAction(row=0, col=0)
+        ...     result = env.step(action)
+        ...     print(f"Board: {result.observation.board}")
+        ...     print(f"Reward: {result.reward}")
     """
-
-    def _step_payload(self, action: MyAction) -> Dict:
+    pass
         """
         Convert MyAction to JSON payload for step message.
 

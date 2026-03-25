@@ -7,7 +7,7 @@
 """My Env Environment."""
 
 from .client import MyEnv
-from .models import MyAction, MyObservation
+from .models import TicTacToeAction ,TicTacToeObservation
 
 __all__ = [
     "MyAction",
