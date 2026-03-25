@@ -1,6 +1,5 @@
 ---
 title: Tic-Tac-Toe OpenEnv Environment
-emoji: 🎮
 colorFrom: blue
 colorTo: indigo
 sdk: docker
@@ -18,22 +17,22 @@ tags:
 
 A production-grade **Tic-Tac-Toe game environment** built with the **OpenEnv framework** (Meta PyTorch + Hugging Face). This environment is designed for **RL agent training and evaluation** with clear task definitions, automated graders, and meaningful reward signals.
 
-## 🎮 Overview
+## Overview
 
 A production-grade **Tic-Tac-Toe game environment** built with the **OpenEnv framework** (Meta PyTorch + Hugging Face). This environment is designed for **RL agent training and evaluation** with clear task definitions, automated graders, and meaningful reward signals.
 
 **Key Features:**
-- ✅ Full OpenEnv spec compliance (typed models, reset/step/state, openenv.yaml)
-- ✅ 3 difficulty-based tasks (Easy → Medium → Hard)
-- ✅ Automated graders (scores 0.0-1.0 per task)
-- ✅ Opponent AI with 3 strategies (random, strategic, optimal)
-- ✅ Meaningful reward shaping (partial progress signals)
-- ✅ Baseline agent with reproducible scores
-- ✅ Containerized deployment (Docker + HF Spaces)
+- [OK] Full OpenEnv spec compliance (typed models, reset/step/state, openenv.yaml)
+- [OK] 3 difficulty-based tasks (Easy -> Medium -> Hard)
+- [OK] Automated graders (scores 0.0-1.0 per task)
+- [OK] Opponent AI with 3 strategies (random, strategic, optimal)
+- [OK] Meaningful reward shaping (partial progress signals)
+- [OK] Baseline agent with reproducible scores
+- [OK] Containerized deployment (Docker + HF Spaces)
 
 ---
 
-## 📋 Problem Statement
+## Problem Statement
 
 **Task:** Build a complete, real-world OpenEnv environment that an AI agent can learn from through the standard `step() / reset() / state()` API.
 
@@ -46,7 +45,7 @@ A production-grade **Tic-Tac-Toe game environment** built with the **OpenEnv fra
 
 ---
 
-## 🏗️ Environment Design
+## Environment Design
 
 ### Action Space
 
@@ -91,7 +90,7 @@ class TicTacToeObservation(Observation):
 
 ---
 
-## 📊 Tasks & Graders
+## Tasks & Graders
 
 ### Task 1: EASY
 - **Opponent:** Random (plays any legal move)
@@ -124,7 +123,7 @@ class TicTacToeObservation(Observation):
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Local Testing
 
@@ -190,7 +189,7 @@ curl http://localhost:8000/tasks
 
 ---
 
-## 📖 Example: Training an Agent
+## Example: Training an Agent
 
 ```python
 from my_env.client import TicTacToeEnv
@@ -231,7 +230,7 @@ with env.sync() as client:
 
 ---
 
-## 🔍 Validation Checklist
+## Validation Checklist
 
 - [x] **OpenEnv Spec Compliance**
   - [x] Typed `Action` and `Observation` models in `models.py`
@@ -240,7 +239,7 @@ with env.sync() as client:
   - [x] All endpoints accessible via HTTP/WebSocket
 
 - [x] **Task Design & Graders**
-  - [x] 3 tasks with difficulty progression (Easy → Medium → Hard)
+  - [x] 3 tasks with difficulty progression (Easy -> Medium -> Hard)
   - [x] Graders that score 0.0-1.0
   - [x] Deterministic, reproducible scoring logic
   - [x] Each task solvable by agents
@@ -269,27 +268,27 @@ with env.sync() as client:
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 my_env/
-├── models.py                  # Pydantic models: Action, Observation
-├── client.py                  # OpenEnv client for agents
-├── baseline_agent.py          # Baseline agent + reproducible scoring
-├── server/
-│   ├── __init__.py
-│   ├── app.py                 # FastAPI server with custom endpoints
-│   ├── my_env_environment.py  # Core game logic, graders, rewards
-│   ├── Dockerfile             # Container definition
-│   └── requirements.txt        # Server dependencies
-├── openenv.yaml               # OpenEnv metadata
-├── pyproject.toml             # Project configuration
-└── README.md                  # This file
+|-- models.py                  # Pydantic models: Action, Observation
+|-- client.py                  # OpenEnv client for agents
+|-- baseline_agent.py          # Baseline agent + reproducible scoring
+|-- server/
+|   |-- __init__.py
+|   |-- app.py                 # FastAPI server with custom endpoints
+|   |-- my_env_environment.py  # Core game logic, graders, rewards
+|   |-- Dockerfile             # Container definition
+|   |-- requirements.txt        # Server dependencies
+|-- openenv.yaml               # OpenEnv metadata
+|-- pyproject.toml             # Project configuration
+|-- README.md                  # This file
 ```
 
 ---
 
-## 🧠 Opponent Strategies
+## Opponent Strategies
 
 ### Random Opponent
 - Plays any legal move uniformly at random
@@ -310,7 +309,7 @@ my_env/
 
 ---
 
-## 🎯 Training Tips for Agents
+## Training Tips for Agents
 
 1. **Start with Task 1 (Easy):** Agents need to learn the rules first
 2. **Use Task 2 (Medium) to build strategy:** Encourages non-random play
@@ -320,7 +319,7 @@ my_env/
 
 ---
 
-## 📊 Expected Baseline Scores
+## Expected Baseline Scores
 
 **Random agent (plays legal moves, no strategy):**
 
@@ -332,7 +331,7 @@ my_env/
 
 ---
 
-## 🐳 Production Deployment
+## Production Deployment
 
 ### Deploy to Hugging Face Spaces
 
@@ -358,7 +357,7 @@ Space will auto-deploy from Docker image.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 To extend this environment:
 
@@ -382,7 +381,7 @@ To extend this environment:
 
 ---
 
-## 📞 Support
+## Support
 
 For questions or issues:
 1. Check the [OpenEnv docs](https://github.com/meta-pytorch/openenv)
