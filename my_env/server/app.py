@@ -6,8 +6,8 @@ Standard endpoints (/reset, /step, /state, /schema, /ws) provided by create_app(
 """
 
 from openenv.core.env_server.http_server import create_app
-from models import SupportAction, SupportObservation
-from customer_support_environment import CustomerSupportEnvironment
+from ..models import SupportAction, SupportObservation
+from .customer_support_environment import CustomerSupportEnvironment
 
 
 # Create app - provides /reset, /step, /state, /schema, /ws automatically
