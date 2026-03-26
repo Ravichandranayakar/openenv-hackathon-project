@@ -19,9 +19,9 @@ except ImportError:
 
 #Create base app - provides /reset, /step, /state, /schema, /ws automatically
 app = create_app(
-    env_class=TicTacToeEnvironment,
-    action_type=TicTacToeAction,
-    observation_type=TicTacToeObservation
+    TicTacToeEnvironment,
+    TicTacToeAction,
+    TicTacToeObservation
 )
 
 
