@@ -9,9 +9,9 @@
 # Support both in-repo and standalone imports
 try:
     # In-repo imports
-    from .my_env_environment import TicTacToeEnvironment
+    from .customer_support_environment import CustomerSupportEnvironment
 except ImportError:
     # Standalone imports
-    from server.my_env_environment import TicTacToeEnvironment
+    from server.customer_support_environment import CustomerSupportEnvironment
 
-__all__ = ["TicTacToeEnvironment"]
+__all__ = ["CustomerSupportEnvironment"]
