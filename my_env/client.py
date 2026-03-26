@@ -1,29 +1,26 @@
 """
 OpenEnv Environment Client - Agent interface to environment server.
 
-Provides type-safe client for interacting with environment over HTTP/WebSocket.
+Provides type-safe client for interacting with customer support environment over HTTP/WebSocket.
 """
 
 from openenv.core import EnvClient
 
-# Support both in-repo and standalone imports
 try:
-    # In-repo imports (when running from OpenEnv repository)
-    from .models import TicTacToeAction, TicTacToeObservation
+    from models import SupportAction, SupportObservation
 except ImportError:
-    # Standalone imports (when environment is standalone with openenv from pip)
-    from models import TicTacToeAction, TicTacToeObservation
+    from my_env.models import SupportAction, SupportObservation
 
 
-class TicTacToeEnv(EnvClient[TicTacToeAction, TicTacToeObservation, dict]):
+class CustomerSupportEnv(EnvClient[SupportAction, SupportObservation, dict]):
     """
-    Client for Tic-Tac-Toe Environment.
+    Client for Customer Support Environment.
     
     Usage:
-        env = TicTacToeEnv(base_url="http://localhost:8000")
+        env = CustomerSupportEnv(base_url="http://localhost:8000")
         with env.sync() as client:
             obs = client.reset()
-            obs = client.step(TicTacToeAction(row=0, col=0))
+            action = SupportAction(action_type="classify_issue", classification="billing")
+            obs = client.step(action)
     """
     pass
-        

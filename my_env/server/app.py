@@ -1,33 +1,26 @@
 """
-OpenEnv FastAPI Server - HTTP/WebSocket interface to environment.
+Customer Support OpenEnv Server - HTTP/WebSocket interface.
 
-Provides OpenEnv-compliant REST API with standard and custom endpoints.
+Provides OpenEnv-compliant REST API for customer support environment.
+Standard endpoints (/reset, /step, /state, /schema) provided by create_app().
 """
 
 from openenv.core.env_server.http_server import create_app
-
-# Support both in-repo and standalone imports
-try:
-    # In-repo imports (when running from OpenEnv repository)
-    from ..models import TicTacToeAction, TicTacToeObservation
-    from .my_env_environment import TicTacToeEnvironment
-except ImportError:
-    # Standalone imports (when environment is standalone with openenv from pip)
-    from models import TicTacToeAction, TicTacToeObservation
-    from server.my_env_environment import TicTacToeEnvironment
+from models import SupportAction, SupportObservation
+from customer_support_environment import CustomerSupportEnvironment
 
 
-#Create base app - provides /reset, /step, /state, /schema, /ws automatically
+# Create base app - provides /reset, /step, /state, /schema, /ws automatically
 app = create_app(
-    TicTacToeEnvironment,
-    TicTacToeAction,
-    TicTacToeObservation
+    env_class=CustomerSupportEnvironment,
+    action_type=SupportAction,
+    observation_type=SupportObservation
 )
 
 
 @app.get("/health")
 async def health():
-    """Health check."""
+    """Health check endpoint."""
     return {"status": "ok"}
 
 
@@ -36,25 +29,11 @@ async def list_tasks():
     """List available tasks."""
     return {
         "tasks": [
-            {"id": 1, "name": "Easy", "opponent": "random"},
-            {"id": 2, "name": "Medium", "opponent": "strategic"},
-            {"id": 3, "name": "Hard", "opponent": "optimal"}
+            {"id": 1, "name": "Easy", "description": "Simple ticket classification"},
+            {"id": 2, "name": "Medium", "description": "Mixed ticket types with escalation"},
+            {"id": 3, "name": "Hard", "description": "Complex cases requiring expertise"}
         ]
     }
 
 
-@app.post("/grader")
-async def grader():
-    """Grade the completed episode (0.0-1.0 score)."""
-    # This endpoint grades the most recent episode completion
-    # Returns score based on game outcome (win=1.0, draw=0.5, loss=0.0)
-    return {
-        "score": 0.5,
-        "reason": "Episode grader - scores based on game outcome",
-        "scoring": {
-            "agent_win": 1.0,
-            "draw": 0.5,
-            "agent_loss": 0.0,
-            "invalid_move": 0.0
-        }
-    }
+

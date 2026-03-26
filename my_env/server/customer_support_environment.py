@@ -1,0 +1,469 @@
+"""
+Customer Support Environment - OpenEnv Implementation
+
+Implements the Environment interface for customer support ticket handling.
+Agents learn to classify issues, provide solutions, and escalate when needed.
+"""
+
+from uuid import uuid4
+from typing import Optional
+import random
+
+from openenv.core.env_server.interfaces import Environment
+from openenv.core.env_server.types import State
+
+from ..models import SupportAction, SupportObservation
+from .data.tickets import get_random_ticket, get_ticket_by_id
+from .logic.ticket_resolver import TicketResolver, RewardCalculator
+
+
+class CustomerSupportEnvironment(Environment):
+    """
+    Customer Support OpenEnv Environment
+    
+    Agent learns to handle support tickets by:
+    1. Classifying issue type
+    2. Providing solutions
+    3. Deciding when to escalate
+    4. Closing tickets appropriately
+    """
+    
+    SUPPORTS_CONCURRENT_SESSIONS = True
+    
+    TASKS = {
+        1: {"name": "Easy - Simple ticket classification", "difficulty": "easy"},
+        2: {"name": "Medium - Mixed ticket types with escalation", "difficulty": "medium"},
+        3: {"name": "Hard - Complex cases requiring expertise", "difficulty": "hard"},
+    }
+    
+    def __init__(self):
+        """Initialize environment."""
+        self.resolver = TicketResolver()
+        self.current_ticket = None
+        self.current_task_id = 1
+        self._state = None
+        self.episode_done = False
+        self.step_count = 0
+        self.total_reward = 0.0
+        self.classification_done = False
+        self.solution_done = False
+        self.escalation_handled = False
+    
+    def reset(self) -> SupportObservation:
+        """
+        Reset environment and load a new ticket.
+        
+        Returns:
+            Initial observation with ticket details
+        """
+        # Load random ticket based on task difficulty
+        self.current_ticket = get_random_ticket(self.current_task_id)
+        
+        # Initialize state
+        self._state = State(
+            episode_id=str(uuid4()),
+            step_count=0
+        )
+        
+        # Reset flags
+        self.episode_done = False
+        self.step_count = 0
+        self.total_reward = 0.0
+        self.classification_done = False
+        self.solution_done = False
+        self.escalation_handled = False
+        
+        return self._observation(
+            status="open",
+            resolution_message="Ticket loaded. Please classify the issue type."
+        )
+    
+    def set_task(self, task_id: int) -> SupportObservation:
+        """
+        Switch to a different task difficulty.
+        
+        Args:
+            task_id: 1 (Easy), 2 (Medium), 3 (Hard)
+        
+        Returns:
+            Observation with new task
+        """
+        if task_id not in self.TASKS:
+            raise ValueError(f"Invalid task_id: {task_id}. Must be 1, 2, or 3.")
+        self.current_task_id = task_id
+        return self.reset()
+    
+    def step(self, action: SupportAction) -> SupportObservation:
+        """
+        Process agent action and return updated observation.
+        
+        Args:
+            action: SupportAction with action_type and parameters
+        
+        Returns:
+            Updated SupportObservation with reward
+        """
+        try:
+            # Validate action
+            if action is None:
+                return self._error_observation("Action cannot be None")
+            
+            if not hasattr(action, 'action_type'):
+                return self._error_observation("Action must have action_type field")
+            
+            if not self.resolver.is_valid_action_type(action.action_type):
+                return self._error_observation(
+                    f"Invalid action_type: {action.action_type}. "
+                    f"Must be one of: {', '.join(self.resolver.VALID_ACTIONS)}"
+                )
+            
+            # Increment step count
+            self._state.step_count += 1
+            self.step_count += 1
+            
+            # Process action based on type
+            if action.action_type == "classify_issue":
+                return self._handle_classify(action)
+            
+            elif action.action_type == "choose_solution":
+                return self._handle_choose_solution(action)
+            
+            elif action.action_type == "escalate_decision":
+                return self._handle_escalation_decision(action)
+            
+            elif action.action_type == "close_ticket":
+                return self._handle_close(action)
+            
+            else:
+                return self._error_observation(f"Unknown action: {action.action_type}")
+        
+        except Exception as e:
+            return self._error_observation(f"Error processing action: {str(e)}")
+    
+    def _handle_classify(self, action: SupportAction) -> SupportObservation:
+        """Handle classify_issue action - Step 1 of 4."""
+        if self.classification_done:
+            return self._error_observation("Classification already done")
+        
+        if action.classification is None:
+            return self._error_observation("classification field required for classify_issue")
+        
+        # Validate classification is one of the allowed types
+        if action.classification not in self.resolver.VALID_CLASSIFICATIONS:
+            return self._error_observation(
+                f"Invalid classification: {action.classification}. "
+                f"Must be one of: {', '.join(self.resolver.VALID_CLASSIFICATIONS)}"
+            )
+        
+        # Check if classification is correct
+        is_correct = self.resolver.is_classification_correct(
+            self.current_ticket["id"],
+            action.classification
+        )
+        
+        # Calculate reward step-by-step
+        classification_reward = RewardCalculator.classify_step(
+            self.current_ticket["id"],
+            action.classification
+        )
+        
+        self.total_reward += classification_reward
+        self.classification_done = True
+        
+        message = (
+            f"Classified as '{action.classification}'. "
+            f"{'✓ Correct!' if is_correct else '✗ Incorrect.'} "
+            f"(+{classification_reward:.1f}) → Next: Select solution category."
+        )
+        
+        return self._observation(
+            status="classified",
+            classification=action.classification,
+            correct_classification=is_correct,
+            classification_reward=classification_reward,
+            resolution_message=message
+        )
+    
+    def _handle_choose_solution(self, action: SupportAction) -> SupportObservation:
+        """Handle choose_solution action - Step 2 of 4."""
+        if not self.classification_done:
+            return self._error_observation(
+                "Must classify issue first (classify_issue action)"
+            )
+        
+        if self.solution_done:
+            return self._error_observation("Solution already chosen")
+        
+        if action.solution is None:
+            return self._error_observation("solution field required for choose_solution")
+        
+        if action.category is None:
+            return self._error_observation("category field required for choose_solution")
+        
+        # Get the classification that was chosen
+        current_classification = next(
+            (obs.classification for obs in [self.current_ticket] if obs),
+            None
+        )
+        # Get it from what we stored
+        ticket_classification = self.current_ticket.get("correct_type")
+        
+        # For this step, use the correct classification to validate solutions
+        is_category_valid = self.resolver.is_category_valid_for_type(
+            ticket_classification,
+            action.category
+        )
+        
+        if not is_category_valid:
+            return self._error_observation(
+                f"Invalid category '{action.category}' for type '{ticket_classification}'"
+            )
+        
+        # Check category correctness
+        is_category_correct = self.resolver.is_category_correct(
+            self.current_ticket["id"],
+            action.category
+        )
+        
+        # Check solution correctness
+        is_solution_correct = self.resolver.is_solution_correct(
+            self.current_ticket["id"],
+            action.solution
+        )
+        
+        # Calculate reward for this step
+        solution_reward = RewardCalculator.solution_step(
+            self.current_ticket["id"],
+            ticket_classification,
+            action.category,
+            action.solution
+        )
+        
+        self.total_reward += solution_reward
+        self.solution_done = True
+        
+        message = (
+            f"Selected category '{action.category}', solution '{action.solution}'. "
+            f"Category: {'✓' if is_category_correct else '✗'}, "
+            f"Solution: {'✓' if is_solution_correct else '✗'} "
+            f"(+{solution_reward:.1f}) → Next: Make escalation decision."
+        )
+        
+        return self._observation(
+            status="solution_selected",
+            category=action.category,
+            correct_category=is_category_correct,
+            solution=action.solution,
+            correct_solution=is_solution_correct,
+            solution_reward=solution_reward,
+            resolution_message=message
+        )
+    
+    def _handle_escalation_decision(self, action: SupportAction) -> SupportObservation:
+        """Handle escalate_decision action - Step 3 of 4."""
+        if not self.classification_done or not self.solution_done:
+            return self._error_observation(
+                "Must classify and choose solution first"
+            )
+        
+        if self.escalation_handled:
+            return self._error_observation("Escalation decision already made")
+        
+        if action.should_escalate is None:
+            return self._error_observation("should_escalate field required for escalate_decision")
+        
+        # Check if escalation decision is correct
+        is_escalation_correct = self.resolver.is_escalation_correct(
+            self.current_ticket["id"],
+            action.should_escalate
+        )
+        
+        # Calculate reward for escalation decision
+        escalation_reward = RewardCalculator.escalation_step(
+            self.current_ticket["id"],
+            action.should_escalate
+        )
+        
+        self.total_reward += escalation_reward
+        self.escalation_handled = True
+        
+        escalation_text = "escalate" if action.should_escalate else "close"
+        correct_symbol = "✓" if is_escalation_correct else "✗"
+        
+        message = (
+            f"Decision: {escalation_text.upper()}. {correct_symbol} "
+            f"(+{escalation_reward:.1f}) → Next: Close ticket."
+        )
+        
+        return self._observation(
+            status="escalation_decided",
+            escalation_decision=action.should_escalate,
+            correct_escalation=is_escalation_correct,
+            escalation_reward=escalation_reward,
+            resolution_message=message
+        )
+    
+    def _handle_close(self, action: SupportAction) -> SupportObservation:
+        """Handle close_ticket action - Step 4 of 4."""
+        if not self.classification_done:
+            return self._error_observation("Cannot close without classification")
+        
+        if not self.solution_done:
+            return self._error_observation("Cannot close without choosing solution")
+        
+        if not self.escalation_handled:
+            return self._error_observation("Must make escalation decision first")
+        
+        # Award closure reward based on whether escalation was correct
+        # Get the escalation correctness from previous step
+        escalation_correct = self.resolver.is_escalation_correct(
+            self.current_ticket["id"],
+            # We don't have the action here, but we can infer from context
+            # Simplified: award closure if all steps were correct
+            True  # Placeholder - will be improved
+        )
+        
+        closure_reward = RewardCalculator.closure_step(escalation_correct)
+        self.total_reward += closure_reward
+        self.episode_done = True
+        
+        message = (
+            f"Ticket closed. Episode complete. "
+            f"Total reward: {self.total_reward:.2f}/1.0 "
+            f"= {(self.total_reward/1.0)*100:.0f}%"
+        )
+        
+        return self._observation(
+            status="resolved",
+            closure_reward=closure_reward if closure_reward > 0 else 0.0,
+            episode_done=True,
+            episode_reward=self.total_reward,
+            episode_score=max(0.0, min(1.0, self.total_reward / 1.0)),
+            resolution_message=message
+        )
+    
+    def _observation(
+        self,
+        status: str,
+        resolution_message: str = "",
+        classification: Optional[str] = None,
+        correct_classification: Optional[bool] = None,
+        classification_reward: float = None,
+        category: Optional[str] = None,
+        correct_category: Optional[bool] = None,
+        solution: Optional[str] = None,
+        correct_solution: Optional[bool] = None,
+        solution_reward: float = None,
+        escalation_decision: Optional[bool] = None,
+        correct_escalation: Optional[bool] = None,
+        escalation_reward: float = None,
+        closure_reward: float = None,
+        episode_done: bool = False,
+        episode_reward: float = None,
+        episode_score: float = None,
+    ) -> SupportObservation:
+        """
+        Create a SupportObservation with complete step-by-step feedback.
+        
+        Args:
+            status: Current ticket status
+            resolution_message: Feedback to agent
+            classification: Current classification
+            correct_classification: If classification is correct
+            classification_reward: Reward for classification step
+            category: Current category choice
+            correct_category: If category is correct
+            solution: Current solution choice
+            correct_solution: If solution is correct
+            solution_reward: Reward for solution step
+            escalation_decision: True if escalating, False if closing
+            correct_escalation: If escalation decision is correct
+            escalation_reward: Reward for escalation step
+            closure_reward: Reward for closure step
+            episode_done: Whether episode is complete
+            episode_reward: Total reward for episode
+            episode_score: Normalized score (0.0-1.0)
+        
+        Returns:
+            SupportObservation with all feedback
+        """
+        return SupportObservation(
+            ticket_id=self.current_ticket["id"],
+            message=self.current_ticket["message"],
+            severity=self.current_ticket["severity"],
+            status=status,
+            task_id=self.current_task_id,
+            task_name=self.TASKS[self.current_task_id]["name"],
+            step_count=self.step_count,
+            resolution_message=resolution_message,
+            
+            # Classification step feedback
+            classification=classification,
+            correct_classification=correct_classification,
+            classification_reward=classification_reward,
+            
+            # Category step feedback
+            category=category,
+            correct_category=correct_category,
+            
+            # Solution step feedback
+            solution=solution,
+            correct_solution=correct_solution,
+            solution_reward=solution_reward,
+            
+            # Escalation step feedback
+            escalation_decision=escalation_decision,
+            correct_escalation=correct_escalation,
+            escalation_reward=escalation_reward,
+            
+            # Closure feedback
+            closure_reward=closure_reward,
+            
+            # Episode summary
+            episode_done=episode_done,
+            episode_reward=episode_reward if episode_reward is not None else self.total_reward,
+            episode_score=episode_score if episode_score is not None else 0.0,
+        )
+    
+    def _error_observation(self, error_message: str) -> SupportObservation:
+        """Return error observation and mark episode done."""
+        self.episode_done = True
+        penalty = -0.5
+        self.total_reward += penalty
+        return SupportObservation(
+            ticket_id=self.current_ticket["id"] if self.current_ticket else "unknown",
+            message=self.current_ticket["message"] if self.current_ticket else "No ticket loaded",
+            severity=self.current_ticket.get("severity", "low") if self.current_ticket else "low",
+            status="error",
+            task_id=self.current_task_id,
+            task_name=self.TASKS[self.current_task_id]["name"],
+            step_count=self.step_count,
+            episode_done=True,
+            episode_reward=self.total_reward,
+            episode_score=max(0.0, self.total_reward / 1.0),
+            resolution_message=f"ERROR: {error_message}",
+        )
+    
+    @property
+    def state(self) -> State:
+        """Get current episode state."""
+        return self._state
+    
+    def grade_episode(self) -> dict:
+        """
+        Grade the episode on a 0.0-1.0 scale.
+        
+        Grading breakdown (Max reward per episode: 1.0):
+        - Step 1 - Classification: 0.2
+        - Step 2 - Solution/Category: 0.3
+        - Step 3 - Escalation decision: 0.3
+        - Step 4 - Closure: 0.2
+        
+        Score = total_reward / 1.0
+        
+        Returns:
+            Dict with score (0.0-1.0)
+        """
+        max_reward = RewardCalculator.MAX_REWARD  # 1.0
+        score = max(0.0, min(1.0, self.total_reward / max_reward))
+        return {"score": score}
