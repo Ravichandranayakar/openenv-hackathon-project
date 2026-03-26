@@ -6,15 +6,24 @@ Standard endpoints (/reset, /step, /state, /schema, /ws) provided by create_app(
 """
 
 from openenv.core.env_server.http_server import create_app
-from ..models import SupportAction, SupportObservation
-from .customer_support_environment import CustomerSupportEnvironment
+
+# Support both in-repo and standalone imports
+try:
+    # In-repo imports
+    from ..models import SupportAction, SupportObservation
+    from .customer_support_environment import CustomerSupportEnvironment
+except ImportError:
+    # Standalone imports (Docker deployment)
+    from models import SupportAction, SupportObservation
+    from server.customer_support_environment import CustomerSupportEnvironment
 
 
 # Create app - provides /reset, /step, /state, /schema, /ws automatically
+# Use POSITIONAL arguments, not named
 app = create_app(
-    env_class=CustomerSupportEnvironment,
-    action_type=SupportAction,
-    observation_type=SupportObservation
+    CustomerSupportEnvironment,
+    SupportAction,
+    SupportObservation
 )
 
 

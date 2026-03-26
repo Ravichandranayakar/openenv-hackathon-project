@@ -12,9 +12,17 @@ import random
 from openenv.core.env_server.interfaces import Environment
 from openenv.core.env_server.types import State
 
-from ..models import SupportAction, SupportObservation
-from .data.tickets import get_random_ticket, get_ticket_by_id
-from .logic.ticket_resolver import TicketResolver, RewardCalculator
+# Support both in-repo and standalone imports
+try:
+    # In-repo imports
+    from ..models import SupportAction, SupportObservation
+    from .data.tickets import get_random_ticket, get_ticket_by_id
+    from .logic.ticket_resolver import TicketResolver, RewardCalculator
+except ImportError:
+    # Standalone imports (Docker deployment)
+    from models import SupportAction, SupportObservation
+    from server.data.tickets import get_random_ticket, get_ticket_by_id
+    from server.logic.ticket_resolver import TicketResolver, RewardCalculator
 
 
 class CustomerSupportEnvironment(Environment):

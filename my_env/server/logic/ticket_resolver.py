@@ -13,7 +13,13 @@ Max reward per episode: 1.0
 Backward compatible with TicketResolver class interface.
 """
 
-from ..data.tickets import RESOLUTION_POLICIES, get_ticket_by_id
+# Support both in-repo and standalone imports
+try:
+    # In-repo imports
+    from ..data.tickets import RESOLUTION_POLICIES, get_ticket_by_id
+except ImportError:
+    # Standalone imports (Docker deployment)
+    from server.data.tickets import RESOLUTION_POLICIES, get_ticket_by_id
 
 
 def is_valid_action_type(action_type: str) -> bool:
