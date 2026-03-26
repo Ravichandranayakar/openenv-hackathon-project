@@ -13,7 +13,7 @@ Max reward per episode: 1.0
 Backward compatible with TicketResolver class interface.
 """
 
-from my_env.server.data.tickets import RESOLUTION_POLICIES, get_ticket_by_id
+from ..data.tickets import RESOLUTION_POLICIES, get_ticket_by_id
 
 
 def is_valid_action_type(action_type: str) -> bool:
