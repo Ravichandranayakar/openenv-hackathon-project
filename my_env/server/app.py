@@ -1,18 +1,17 @@
 """
-Customer Support OpenEnv Server - HTTP/WebSocket interface with Web Dashboard.
+Customer Support OpenEnv Server - HTTP/WebSocket interface.
 
-Provides OpenEnv-compliant REST API + interactive web interface for customer support environment.
-Endpoints (/reset, /step, /state, /schema, /ws) + web dashboard at /web provided by create_web_interface_app().
+Provides OpenEnv-compliant REST API for customer support environment.
+Standard endpoints (/reset, /step, /state, /schema, /ws) provided by create_app().
 """
 
-from openenv.core.env_server.http_server import create_web_interface_app
+from openenv.core.env_server.http_server import create_app
 from models import SupportAction, SupportObservation
 from customer_support_environment import CustomerSupportEnvironment
 
 
-# Create app with built-in web interface dashboard
-# Provides /reset, /step, /state, /schema, /ws + /web dashboard automatically
-app = create_web_interface_app(
+# Create app - provides /reset, /step, /state, /schema, /ws automatically
+app = create_app(
     env_class=CustomerSupportEnvironment,
     action_type=SupportAction,
     observation_type=SupportObservation
