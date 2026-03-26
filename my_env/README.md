@@ -6,6 +6,8 @@ sdk: docker
 pinned: false
 app_port: 8000
 base_path: /web
+variables:
+  ENABLE_WEB_INTERFACE: "true"
 tags:
   - openenv
   - rl
