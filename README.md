@@ -115,14 +115,4 @@ Run any task: `python demo.py --task 1` (or 2, or 3)
 
 Full list in [my_env/server/data/tickets.py](my_env/server/data/tickets.py)
 
-## Learning Process
 
-Agents improve through feedback loop:
-
-1. Agent gets ticket and makes decisions (classify, solve, escalate, close)
-2. Wrong decision? Agent sees the correct answer
-3. Next similar ticket? Agent knows better 
-4. 5-10 episodes = noticeable improvement
-5. 20+ episodes = agents master the task
-
-That's real reinforcement learning in action.
