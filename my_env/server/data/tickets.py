@@ -228,8 +228,7 @@ def get_valid_solutions_for_issue(issue_type: str, category: str) -> list:
     Returns:
         List of valid solution IDs
     """
-    if issue_type in RESOLUTION_POLICIES:
-        if category in RESOLUTION_POLICIES[issue_type]:
-            return RESOLUTION_POLICIES[issue_type][category]
+    if issue_type in RESOLUTION_POLICIES and category in RESOLUTION_POLICIES[issue_type]:
+        return RESOLUTION_POLICIES[issue_type][category]
     return []
 

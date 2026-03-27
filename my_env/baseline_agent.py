@@ -85,16 +85,16 @@ def run_episode(env: CustomerSupportEnv, agent: SimpleAgent) -> dict:
         obs = env.reset()
         steps = 0
         total_reward = 0.0
-        actions_taken = []
         
         # Step 1: Classify Issue
+        actions_taken = []
         classification = agent.choose_classification()
         action = SupportAction(
             action_type="classify_issue",
             classification=classification
         )
         obs = env.step(action)
-        total_reward += obs.classification_reward if obs.classification_reward else 0.0
+        total_reward += obs.classification_reward or 0.0
         steps += 1
         actions_taken.append(f"classify:{classification}")
         
@@ -107,7 +107,7 @@ def run_episode(env: CustomerSupportEnv, agent: SimpleAgent) -> dict:
             solution=solution
         )
         obs = env.step(action)
-        total_reward += obs.solution_reward if obs.solution_reward else 0.0
+        total_reward += obs.solution_reward or 0.0
         steps += 1
         actions_taken.append(f"category:{category},solution:{solution}")
         
@@ -118,21 +118,21 @@ def run_episode(env: CustomerSupportEnv, agent: SimpleAgent) -> dict:
             should_escalate=should_escalate
         )
         obs = env.step(action)
-        total_reward += obs.escalation_reward if obs.escalation_reward else 0.0
+        total_reward += obs.escalation_reward or 0.0
         steps += 1
         actions_taken.append(f"escalate:{should_escalate}")
         
         # Step 4: Close Ticket
         action = SupportAction(action_type="close_ticket")
         obs = env.step(action)
-        total_reward += obs.closure_reward if obs.closure_reward else 0.0
+        total_reward += obs.closure_reward or 0.0
         steps += 1
         actions_taken.append("closed")
         
         return {
             "ticket_id": obs.ticket_id,
             "total_reward": total_reward,
-            "episode_score": obs.episode_score if obs.episode_score else 0.0,
+            "episode_score": obs.episode_score or 0.0,
             "steps": steps,
             "actions": actions_taken,
             "final_status": obs.status
@@ -179,7 +179,7 @@ def run_baseline(env_url: str, num_episodes: int, seed: int, task_id: int = 1):
             print(f"Ep {episode_num+1:2d}: {status} score={score:.2f} reward={reward:.2f} ticket={ep_data['ticket_id']}")
         
         # Summary
-        avg_reward = sum(e.get("total_reward", 0) for e in episodes_data) / len(episodes_data)
+        avg_reward = sum(e.get("total_reward", 0) for e in episodes_data) / (len(episodes_data) or 1)
         avg_score = sum(e.get("episode_score", 0) for e in episodes_data) / len(episodes_data)
         success_count = sum(1 for e in episodes_data if e["final_status"] == "resolved")
         success_rate = success_count / len(episodes_data)
