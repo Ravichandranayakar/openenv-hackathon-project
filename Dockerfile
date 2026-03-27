@@ -71,10 +71,13 @@ ENV PATH="/app/.venv/bin:$PATH"
 # Set PYTHONPATH so imports work correctly
 ENV PYTHONPATH="/app/env:$PYTHONPATH"
 
+# Set working directory for the app
+WORKDIR /app/env
+
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Run the FastAPI server
-# The module path is constructed to work with the /app/env structure
-CMD ["sh", "-c", "cd /app/env && uvicorn server.app:app --host 0.0.0.0 --port 8000"]
+# Run the FastAPI server with optimized startup
+# Direct exec form avoids shell overhead
+CMD ["uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "8000"]
