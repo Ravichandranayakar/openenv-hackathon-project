@@ -83,6 +83,8 @@ class CustomerSupportEnvironment(Environment):
         
         return self._observation(
             status="open",
+            reward=0.0,
+            done=False,
             resolution_message="Ticket loaded. Please classify the issue type."
         )
     
@@ -194,10 +196,11 @@ class CustomerSupportEnvironment(Environment):
         
         return self._observation(
             status="classified",
+            reward=classification_reward,
+            done=False,
             classification=action.classification,
             correct_classification=is_correct,
             classification_reward=classification_reward,
-            ground_truth_type=correct_type,
             resolution_message=message
         )
     
@@ -286,6 +289,8 @@ class CustomerSupportEnvironment(Environment):
         
         return self._observation(
             status="solution_selected",
+            reward=solution_reward,
+            done=False,
             category=action.category,
             correct_category=is_category_correct,
             solution=action.solution,
@@ -341,6 +346,8 @@ class CustomerSupportEnvironment(Environment):
         
         return self._observation(
             status="escalation_decided",
+            reward=escalation_reward,
+            done=False,
             escalation_decision=action.should_escalate,
             correct_escalation=is_escalation_correct,
             escalation_reward=escalation_reward,
@@ -379,8 +386,9 @@ class CustomerSupportEnvironment(Environment):
         
         return self._observation(
             status="resolved",
+            reward=closure_reward,
+            done=True,
             closure_reward=closure_reward if closure_reward > 0 else 0.0,
-            episode_done=True,
             episode_reward=self.total_reward,
             episode_score=max(0.0, min(1.0, self.total_reward / 1.0)),
             resolution_message=message
@@ -390,6 +398,9 @@ class CustomerSupportEnvironment(Environment):
         self,
         status: str,
         resolution_message: str = "",
+        reward: float = 0.0,
+        done: bool = False,
+        truncated: bool = False,
         classification: Optional[str] = None,
         correct_classification: Optional[bool] = None,
         classification_reward: float = None,
@@ -407,31 +418,40 @@ class CustomerSupportEnvironment(Environment):
         episode_score: float = None,
     ) -> SupportObservation:
         """
-        Create a SupportObservation with complete step-by-step feedback.
+        Create a SupportObservation with Gymnasium-style returns.
         
         Args:
-            status: Current ticket status
-            resolution_message: Feedback to agent
-            classification: Current classification
-            correct_classification: If classification is correct
+            status: Current ticket status (open/classified/solution_selected/resolved/error)
+            resolution_message: Feedback message from environment
+            reward: Reward for THIS step (Gymnasium-style)
+            done: Whether episode is complete (Gymnasium-style)
+            truncated: Whether episode was truncated (Gymnasium-style)
+            classification: Agent's classification for current step
+            correct_classification: Whether classification was correct
             classification_reward: Reward for classification step
-            category: Current category choice
-            correct_category: If category is correct
-            solution: Current solution choice
-            correct_solution: If solution is correct
+            category: Agent's category choice
+            correct_category: Whether category was correct
+            solution: Agent's solution choice
+            correct_solution: Whether solution was correct
             solution_reward: Reward for solution step
-            escalation_decision: True if escalating, False if closing
-            correct_escalation: If escalation decision is correct
+            escalation_decision: Agent's escalation decision
+            correct_escalation: Whether escalation decision was correct
             escalation_reward: Reward for escalation step
             closure_reward: Reward for closure step
-            episode_done: Whether episode is complete
+            episode_done: (deprecated - use done)
             episode_reward: Total reward for episode
-            episode_score: Normalized score (0.0-1.0)
+            episode_score: Normalized score
         
         Returns:
-            SupportObservation with all feedback
+            SupportObservation with Gymnasium-style rewards
         """
+        # Use new done/reward params, fallback to legacy episode_done if needed
+        final_done = done or episode_done
+        final_reward = reward
+        final_episode_reward = episode_reward if episode_reward is not None else self.total_reward
+        
         return SupportObservation(
+            # STATE
             ticket_id=self.current_ticket["id"],
             message=self.current_ticket["message"],
             severity=self.current_ticket["severity"],
@@ -439,33 +459,27 @@ class CustomerSupportEnvironment(Environment):
             task_id=self.current_task_id,
             task_name=self.TASKS[self.current_task_id]["name"],
             step_count=self.step_count,
-            resolution_message=resolution_message,
             
-            # Classification step feedback
+            # FEEDBACK
             classification=classification,
             correct_classification=correct_classification,
             classification_reward=classification_reward,
-            
-            # Category step feedback
             category=category,
             correct_category=correct_category,
-            
-            # Solution step feedback
             solution=solution,
             correct_solution=correct_solution,
             solution_reward=solution_reward,
-            
-            # Escalation step feedback
             escalation_decision=escalation_decision,
             correct_escalation=correct_escalation,
             escalation_reward=escalation_reward,
-            
-            # Closure feedback
             closure_reward=closure_reward,
             
-            # Episode summary
-            episode_done=episode_done,
-            episode_reward=episode_reward if episode_reward is not None else self.total_reward,
+            # GYMNASIUM-STYLE
+            reward=final_reward,
+            done=final_done,
+            truncated=truncated,
+            resolution_message=resolution_message,
+            episode_reward=final_episode_reward,
             episode_score=episode_score if episode_score is not None else 0.0,
         )
     
@@ -482,7 +496,10 @@ class CustomerSupportEnvironment(Environment):
             task_id=self.current_task_id,
             task_name=self.TASKS[self.current_task_id]["name"],
             step_count=self.step_count,
-            episode_done=True,
+            # GYMNASIUM-STYLE
+            reward=penalty,
+            done=True,
+            truncated=False,
             episode_reward=self.total_reward,
             episode_score=max(0.0, self.total_reward / 1.0),
             resolution_message=f"ERROR: {error_message}",
