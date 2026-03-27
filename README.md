@@ -1,33 +1,99 @@
----
-title: Customer Support OpenEnv Environment
-colorFrom: purple
-colorTo: pink
-sdk: docker
-pinned: false
-app_port: 8000
-base_path: /web
-tags:
-  - openenv
-  - rl
-  - customer-support
-  - agent-training
----
-
 # Customer Support OpenEnv Environment
 
-A production-grade **Customer Support ticket resolution environment** built with the **OpenEnv framework** (Meta PyTorch + Hugging Face). Agents learn to classify issues, select solutions, and decide on escalation with realistic, deterministic grading.
+A production-grade **Customer Support ticket resolution environment** for agent training. Agents learn to handle realistic support tickets by classifying issues, selecting solutions, and making escalation decisions.
+
+**OpenEnv-compliant** • **Gymnasium-style API** • **14 realistic tickets** • **Deterministic grading** • **Ground truth feedback** • **Docker-ready**
+
+---
 
 ## Quick Start
 
 ```bash
-# Install dependencies
-pip install -e my_env
+# 1. Install dependencies
+pip install -e .
 
-# Start server (Terminal 1)
-python -m uvicorn my_env.server.app:app --reload --port 8000
+# 2. Start server (Terminal 1)
+python -m uvicorn my_env.server.app:app --port 8000
 
-# Run baseline agent (Terminal 2)
-python my_env/baseline_agent.py --url http://localhost:8000 --episodes 5 --task 1
+# 3. Run demo agent (Terminal 2)
+python demo.py --url http://localhost:8000 --episodes 5 --task 1
+```
+
+Expected output:
+```
+Episode 1/5 | Step 4/4 completed
+  Classification: [OK] | Solution: [OK] | Escalation: [OK]
+  Score: 1.0 (100%) | Learning...
+Episode 2/5 ...
+```
+
+---
+
+## Project Structure
+
+```
+├── README.md                       ← You are here
+├── .gitignore
+├── pyproject.toml                  ← Python project config
+├── openenv.yaml                    ← HF Spaces metadata
+├── requirements.txt                ← Dependencies (Docker)
+├── demo.py                         ← Quick start script for reviewers
+│
+├── my_env/                         ← Main environment package
+│   ├── __init__.py
+│   ├── models.py                   ← Type definitions (SupportAction, SupportObservation)
+│   ├── client.py                   ← HTTP client for agents
+│   ├── baseline_agent.py           ← Example agent implementation
+│   ├── openenv.yaml                ← (mirrored at root)
+│   ├── pyproject.toml              ← (mirrored at root)
+│   │
+│   └── server/                     ← FastAPI server & core logic
+│       ├── app.py                  ← Create_app() entry point
+│       ├── customer_support_environment.py  ← Main environment (4 phases)
+│       ├── Dockerfile              ← For Docker/HF Spaces deployment
+│       ├── requirements.txt         ← (mirrored at root)
+│       │
+│       ├── data/
+│       │   └── tickets.py          ← 14 tickets + resolution policies
+│       │
+│       └── logic/
+│           └── ticket_resolver.py  ← Validation & reward engine
+```
+
+---
+
+## How to Use
+
+### For Reviewers
+
+**Just want to see it work?**
+
+```bash
+python demo.py --url http://localhost:8000 --episodes 3 --task 1
+```
+
+### For Developers
+
+**Want to understand the code?**
+
+1. **Types**: See [my_env/models.py](my_env/models.py) for API contract
+2. **Environment**: See [my_env/server/customer_support_environment.py](my_env/server/customer_support_environment.py) for 4-phase logic
+3. **Tickets**: See [my_env/server/data/tickets.py](my_env/server/data/tickets.py) for 14 realistic examples
+4. **Grading**: See [my_env/server/logic/ticket_resolver.py](my_env/server/logic/ticket_resolver.py) for validation & reward
+5. **Agent Example**: See [my_env/baseline_agent.py](my_env/baseline_agent.py) for how to interact
+
+### For Hackathon Setup
+
+**On HuggingFace Spaces:**
+
+```bash
+openenv push --name YourUsername/my-env --token <hf_token>
+```
+
+**If HF Space shows blank screen:** Use this direct link instead:
+```
+https://ravichandranayakar-customer-support-env.hf.space/web/
+```
 ```
 
 **Expected output:**
