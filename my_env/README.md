@@ -299,6 +299,11 @@ This is how real RL training works!
 openenv push --name RavichandraNayakar/my_env --token <hf_token>
 ```
 
+**If HF Space shows blank screen:** Use this direct link instead:
+```
+https://ravichandranayakar-customer-support-env.hf.space/web/
+```
+
 Then visit: https://huggingface.co/spaces/RavichandraNayakar/my_env
 
 ### Docker
