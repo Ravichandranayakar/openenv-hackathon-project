@@ -10,11 +10,13 @@ import random
 import argparse
 
 try:
+    # In-repo imports (running from root)
     from client import CustomerSupportEnv
     from models import SupportAction
 except ImportError:
-    from my_env.client import CustomerSupportEnv
-    from my_env.models import SupportAction
+    # Package imports (when run as my_env.baseline_agent)
+    from ..client import CustomerSupportEnv
+    from ..models import SupportAction
 
 
 class SimpleAgent:

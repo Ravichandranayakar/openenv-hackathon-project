@@ -14,15 +14,20 @@ from openenv.core.env_server.types import State
 
 # Support both in-repo and standalone imports
 try:
-    # In-repo imports
+    # In-repo imports (my_env package structure)
     from ..models import SupportAction, SupportObservation
     from .data.tickets import get_random_ticket, get_ticket_by_id
     from .logic.ticket_resolver import TicketResolver, RewardCalculator
 except ImportError:
-    # Standalone imports (Docker deployment)
+    # Standalone/Docker imports (models.py at root)
+    import sys
+    from pathlib import Path
+    root = Path(__file__).parent.parent.parent
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
     from models import SupportAction, SupportObservation
-    from server.data.tickets import get_random_ticket, get_ticket_by_id
-    from server.logic.ticket_resolver import TicketResolver, RewardCalculator
+    from my_env.server.data.tickets import get_random_ticket, get_ticket_by_id
+    from my_env.server.logic.ticket_resolver import TicketResolver, RewardCalculator
 
 
 class CustomerSupportEnvironment(Environment):

@@ -9,13 +9,18 @@ from openenv.core.env_server.http_server import create_app
 
 # Support both in-repo and standalone imports
 try:
-    # In-repo imports
+    # In-repo imports (my_env package structure)
     from ..models import SupportAction, SupportObservation
     from .customer_support_environment import CustomerSupportEnvironment
 except ImportError:
-    # Standalone imports (Docker deployment)
+    # Standalone/Docker imports (models.py at root)
+    import sys
+    from pathlib import Path
+    root = Path(__file__).parent.parent.parent
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
     from models import SupportAction, SupportObservation
-    from server.customer_support_environment import CustomerSupportEnvironment
+    from my_env.server.customer_support_environment import CustomerSupportEnvironment
 
 
 # Create app - provides /reset, /step, /state, /schema, /ws automatically
