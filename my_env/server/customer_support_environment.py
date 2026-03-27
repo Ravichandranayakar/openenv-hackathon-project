@@ -185,12 +185,12 @@ class CustomerSupportEnvironment(Environment):
         if is_correct:
             message = (
                 f"Classified as '{action.classification}'. "
-                f"✓ CORRECT! (+{classification_reward:.1f}) → Next: Select solution category."
+                f"[OK] CORRECT! (+{classification_reward:.1f}) -> Next: Select solution category."
             )
         else:
             message = (
                 f"Classified as '{action.classification}'. "
-                f"✗ INCORRECT. Correct answer: '{correct_type}' "
+                f"[FAIL] INCORRECT. Correct answer: '{correct_type}' "
                 f"(+{classification_reward:.1f}) Learn: '{correct_type}' issues are about {correct_type} problems."
             )
         
@@ -266,7 +266,7 @@ class CustomerSupportEnvironment(Environment):
         if is_category_correct and is_solution_correct:
             message = (
                 f"Selected category '{action.category}', solution '{action.solution}'. "
-                f"✓ CORRECT! (+{solution_reward:.1f}) → Next: Make escalation decision."
+                f"[OK] CORRECT! (+{solution_reward:.1f}) -> Next: Make escalation decision."
             )
         else:
             # Build ground truth feedback for incorrect answers
@@ -284,7 +284,7 @@ class CustomerSupportEnvironment(Environment):
             
             message = (
                 f"Selected category '{action.category}', solution '{action.solution}'. "
-                f"✗ INCORRECT. {ground_truth} (+{solution_reward:.1f}) → Next: Make escalation decision."
+                f"[FAIL] INCORRECT. {ground_truth} (+{solution_reward:.1f}) -> Next: Make escalation decision."
             )
         
         return self._observation(
@@ -332,16 +332,16 @@ class CustomerSupportEnvironment(Environment):
         # Build message with ground truth if incorrect
         if is_escalation_correct:
             message = (
-                f"Decision: {escalation_text.upper()}. ✓ CORRECT! "
-                f"(+{escalation_reward:.1f}) → Next: Close ticket."
+                f"Decision: {escalation_text.upper()}. [OK] CORRECT! "
+                f"(+{escalation_reward:.1f}) -> Next: Close ticket."
             )
         else:
             correct_decision = self.current_ticket["needs_escalation"]
             correct_text = "escalate" if correct_decision else "close"
             message = (
-                f"Decision: {escalation_text.upper()}. ✗ INCORRECT. "
+                f"Decision: {escalation_text.upper()}. [FAIL] INCORRECT. "
                 f"Correct decision: {correct_text.upper()} "
-                f"(+{escalation_reward:.1f}) → Next: Close ticket."
+                f"(+{escalation_reward:.1f}) -> Next: Close ticket."
             )
         
         return self._observation(

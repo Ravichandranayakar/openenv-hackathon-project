@@ -33,21 +33,40 @@ python my_env/baseline_agent.py --url http://localhost:8000 --episodes 5 --task 
 **Expected output:**
 ```
 Episode 1/5 | Step 3/4 completed
-  Classification: ✓ | Solution: ✓ | Escalation: ✓
+  Classification: [OK] | Solution: [OK] | Escalation: [OK]
   Score: 1.0 (100%) | Agent learning...
 Episode 2/5 ...
 ```
 
+## What This Environment Teaches Agents
+
+This is a **learning environment** where agents practice handling customer support tickets. Here's what happens:
+
+**Agent Goal:** Get the highest score by making correct decisions at each step.
+
+**How it works:**
+1. Agent receives a customer's support ticket (message + severity)
+2. Agent classifies: is this a billing, account, bug, or feature issue?
+3. Agent chooses: what category and solution should we offer?
+4. Agent decides: does this need human escalation?
+5. Agent closes: ticket is resolved
+
+**Agent Learns By:** Each wrong answer shows the correct answer. Over multiple episodes, agents learn patterns and improve accuracy.
+
+**Reward System:** Max 1.0 per episode (0.2 for classify + 0.3 for solution + 0.3 for escalation + 0.2 for closure).
+
+**Why it matters:** Real customer support needs quick, accurate decisions. This environment teaches agents to think through each step.
+
 ## Key Features
 
-- ✅ **Full OpenEnv spec** - typed models, reset/step/state, openenv.yaml
-- ✅ **Gymnasium API** - explicit reward, done, truncated fields
-- ✅ **3 difficulty levels** - Easy, Medium, Hard (task_id 1-3)
-- ✅ **Policy-based grading** - issue type → category → solution → escalation
-- ✅ **14 realistic tickets** - pre-generated with ground truth answers
-- ✅ **Step-by-step feedback** - agents receive ground truth when wrong
-- ✅ **Docker ready** - runs in HF Spaces with `openenv push`
-- ✅ **Baseline agent included** - example learning strategy
+-  **Full OpenEnv spec** - typed models, reset/step/state, openenv.yaml
+-  **Gymnasium API** - explicit reward, done, truncated fields
+-  **3 difficulty levels** - Easy, Medium, Hard (task_id 1-3)
+-  **Policy-based grading** - issue type -> category -> solution -> escalation
+-  **14 realistic tickets** - pre-generated with ground truth answers
+-  **Step-by-step feedback** - agents receive ground truth when wrong
+-  **Docker ready** - runs in HF Spaces with `openenv push`
+-  **Baseline agent included** - example learning strategy
 
 ## Environment Design
 
@@ -125,17 +144,17 @@ observation.status             # "open" | "classified" | "resolved" | "error"
 # FEEDBACK - How the agent did on this step
 observation.classification     # What the agent classified as
 observation.correct_classification  # True/False
-observation.classification_reward    #  +0.2 if correct, ±0.0 if wrong
+observation.classification_reward    #  +0.2 if correct, +0.0 if wrong
 
 observation.category           # Agent's chosen category
 observation.correct_category   # True/False  
 observation.solution           # Agent's chosen solution
 observation.correct_solution   # True/False
-observation.solution_reward    # +0.3 if correct, ±0.0 if wrong
+observation.solution_reward    # +0.3 if correct, +0.0 if wrong
 
 observation.escalation_decision # Agent's true/false decision
 observation.correct_escalation  # True/False
-observation.escalation_reward   # +0.3 if correct, ±0.0 if wrong
+observation.escalation_reward   # +0.3 if correct, +0.0 if wrong
 
 # GYMNASIUM RETURNS - Standard RL API
 observation.reward             # Reward for THIS step (0.0-0.3)
@@ -150,7 +169,7 @@ observation.resolution_message # Feedback text + ground truth if wrong
 
 **When agent is wrong, agent sees ground truth:**
 ```
-✗ INCORRECT. Correct answer: 'bug' (Learn: 'bug' issues are technical problems)
+[FAIL] INCORRECT. Correct answer: 'bug' (Learn: 'bug' issues are technical problems)
 Correct decision: ESCALATE
 Category - Correct: 'app_crash' | Solution - Correct: 'restart_service'
 ```
@@ -188,28 +207,28 @@ Category - Correct: 'app_crash' | Solution - Correct: 'restart_service'
 ### Supported Categories
 
 **Billing Issues:**
-- duplicate_charge → refund_duplicate_charge, investigate_fraud
-- wrong_amount → correct_invoice, refund_difference
-- subscription_issue → cancel_subscription, update_subscription
-- fraud → escalate_security, freeze_account
+- duplicate_charge -> refund_duplicate_charge, investigate_fraud
+- wrong_amount -> correct_invoice, refund_difference
+- subscription_issue -> cancel_subscription, update_subscription
+- fraud -> escalate_security, freeze_account
 
 **Account Issues:**
-- password → reset_password_link, send_recovery_email
-- email → update_email_settings, verify_new_email
-- 2fa → reset_2fa, send_recovery_codes
-- security → escalate_security, freeze_account
+- password -> reset_password_link, send_recovery_email
+- email -> update_email_settings, verify_new_email
+- 2fa -> reset_2fa, send_recovery_codes
+- security -> escalate_security, freeze_account
 
 **Bug Issues:**
-- app_crash → update_app_version, clear_cache_restart
-- ui_glitch → clear_cache_restart, escalate_engineering
-- missing_data → sync_data, escalate_engineering
-- critical → escalate_engineering, create_hotfix
+- app_crash -> update_app_version, clear_cache_restart
+- ui_glitch -> clear_cache_restart, escalate_engineering
+- missing_data -> sync_data, escalate_engineering
+- critical -> escalate_engineering, create_hotfix
 
 **Feature Issues:**
-- how_to → explain_feature, send_tutorial
-- capability → escalate_sales, enable_feature_trial
-- api → escalate_sales, schedule_consultation
-- custom → escalate_sales, create_feature_request
+- how_to -> explain_feature, send_tutorial
+- capability -> escalate_sales, enable_feature_trial
+- api -> escalate_sales, schedule_consultation
+- custom -> escalate_sales, create_feature_request
 
 ## API Endpoints
 
@@ -253,12 +272,12 @@ Environment is fully tested with baseline agent on all difficulty levels (Task 1
 **The Learning Loop:**
 
 1. **Episode starts**: Agent receives ticket (e.g., "Database timing out")
-2. **Phase 1**: Agent classifies type (guess: "billing" → WRONG)
-   - Feedback: `✗ INCORRECT. Correct answer: 'bug'` 
+2. **Phase 1**: Agent classifies type (guess: "billing" -> WRONG)
+   - Feedback: `[FAIL] INCORRECT. Correct answer: 'bug'` 
    - Reward: 0.0, episode_reward: 0.0
 3. **Phase 2**: Agent sees feedback, chooses solution category
-   - On next similar ticket, remembers "database → bug"
-   - Guesses "bug" (now CORRECT)
+   - On next similar ticket, remembers "database -> bug"
+   - Guesses "bug" (now [OK])
    - Reward: +0.2, episode_reward: 0.2
 4. **Phase 3**: Agent proposes escalation decision
 5. **Phase 4**: Ticket closed, episode complete

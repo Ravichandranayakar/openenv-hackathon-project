@@ -15,7 +15,7 @@ INTERACTION PATTERN:
        - Reward: obs.reward (latest step reward)
        - Episode: obs.done (is episode complete?), obs.episode_reward (total), obs.episode_score (0.0-1.0)
 
-ACTION FORMAT (Agent → Environment):
+ACTION FORMAT (Agent -> Environment):
     {
       "action_type": "classify_issue" | "choose_solution" | "escalate_decision" | "close_ticket",
       "classification": "billing" | "account" | "bug" | "feature",        [if classify_issue]
@@ -25,7 +25,7 @@ ACTION FORMAT (Agent → Environment):
       "escalate_reason": "requires_manager" | ...                         [optional]
     }
 
-OBSERVATION FORMAT (Environment → Agent):
+OBSERVATION FORMAT (Environment -> Agent):
     State (what agent needs to know):
       - ticket_id: str           (unique ID)
       - message: str             (customer's problem)
@@ -49,11 +49,11 @@ OBSERVATION FORMAT (Environment → Agent):
       - episode_score: float     (normalized: 0.0-1.0)
 
 REWARD SCHEME:
-    Phase 1: Classify issue        → 0.2 points max
-    Phase 2: Choose solution       → 0.3 points max
-    Phase 3: Escalation decision   → 0.3 points max
-    Phase 4: Close ticket          → 0.2 points max
-    ────────────────────────────────────────────
+    Phase 1: Classify issue        -> 0.2 points max
+    Phase 2: Choose solution       -> 0.3 points max
+    Phase 3: Escalation decision   -> 0.3 points max
+    Phase 4: Close ticket          -> 0.2 points max
+    ----
     Total per episode: 1.0 point (normalized 0.0-1.0 score)
 """
 
@@ -113,9 +113,7 @@ class SupportObservation(Observation):
     Maps to Gymnasium return: (observation, reward, done, truncated, info)
     """
     
-    # ═════════════════════════════════════════════════════════════
     # STATE (What the agent needs to know about the ticket/episode)
-    # ═════════════════════════════════════════════════════════════
     
     # Ticket information
     ticket_id: str = Field(..., description="Unique ticket ID")
@@ -133,9 +131,7 @@ class SupportObservation(Observation):
         description="Current state: open, classified, solution_selected, escalation_decided, resolved, error"
     )
     
-    # ═════════════════════════════════════════════════════════════
     # FEEDBACK (How well the agent is doing - step by step)
-    # ═════════════════════════════════════════════════════════════
     
     # Step 1: Classification feedback
     classification: Optional[str] = Field(None, description="Agent's issue type classification")
@@ -157,9 +153,7 @@ class SupportObservation(Observation):
     # Step 4: Closure feedback
     closure_reward: Optional[float] = Field(None, description="Points for proper closure (0.0-0.2)")
     
-    #═════════════════════════════════════════════════════════════
     # GYMNASIUM-STYLE RETURNS (reward, done, truncated, info)
-    # ═════════════════════════════════════════════════════════════
     
     reward: float = Field(default=0.0, description="Reward for THIS step (latest action)")
     done: bool = Field(default=False, description="Whether episode is complete (reached terminal state)")
