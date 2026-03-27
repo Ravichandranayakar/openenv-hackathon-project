@@ -32,33 +32,67 @@ Episode 2/5 ...
 ## Project Structure
 
 ```
-├── README.md                       ← You are here
-├── .gitignore
-├── pyproject.toml                  ← Python project config
-├── openenv.yaml                    ← HF Spaces metadata
-├── requirements.txt                ← Dependencies (Docker)
-├── demo.py                         ← Quick start script for reviewers
+openenv-hackathon-project/
+├── README.md                    ← You are here (full documentation)
+├── .gitignore                   ← Git ignore rules
+├── demo.py                      ← Quick start script: python demo.py --episodes 5
+├── pyproject.toml               ← Python package config
+├── openenv.yaml                 ← HuggingFace Spaces metadata
+├── requirements.txt             ← Dependencies (for Docker)
 │
-├── my_env/                         ← Main environment package
-│   ├── __init__.py
-│   ├── models.py                   ← Type definitions (SupportAction, SupportObservation)
-│   ├── client.py                   ← HTTP client for agents
-│   ├── baseline_agent.py           ← Example agent implementation
-│   ├── openenv.yaml                ← (mirrored at root)
-│   ├── pyproject.toml              ← (mirrored at root)
-│   │
-│   └── server/                     ← FastAPI server & core logic
-│       ├── app.py                  ← Create_app() entry point
-│       ├── customer_support_environment.py  ← Main environment (4 phases)
-│       ├── Dockerfile              ← For Docker/HF Spaces deployment
-│       ├── requirements.txt         ← (mirrored at root)
-│       │
-│       ├── data/
-│       │   └── tickets.py          ← 14 tickets + resolution policies
-│       │
-│       └── logic/
-│           └── ticket_resolver.py  ← Validation & reward engine
+└── my_env/                      ← Main environment package
+    ├── __init__.py              ← Clean API exports
+    │                               (SupportAction, SupportObservation, 
+    │                                CustomerSupportEnvironment, etc.)
+    ├── models.py                ← Type definitions (Pydantic models)
+    │                               SupportAction: action_type, classification, etc.
+    │                               SupportObservation: reward, done, episode info
+    │
+    ├── client.py                ← HTTP client wrapper (for agents)
+    │                               CustomerSupportEnv class
+    │
+    ├── baseline_agent.py        ← Example agent implementation
+    │                               SimpleAgent class + run_baseline()
+    │
+    └── server/                  ← FastAPI server & environment logic
+        ├── app.py               ← Entry point: create_app(env, action, obs)
+        │
+        ├── customer_support_environment.py  ← Core environment (220 lines)
+        │                                       Implements 4-phase workflow:
+        │                                       1. Classification (0.2 reward)
+        │                                       2. Solution selection (0.3 reward)
+        │                                       3. Escalation decision (0.3 reward)
+        │                                       4. Ticket closure (0.2 reward)
+        │
+        ├── Dockerfile           ← For Docker / HF Spaces deployment
+        │
+        ├── data/
+        │   └── tickets.py       ← 14 pre-generated support tickets
+        │                           - 5 Easy (Task 1)
+        │                           - 7 Medium (Task 2) 
+        │                           - 2 Hard (Task 3)
+        │                           - RESOLUTION_POLICIES (decision tree)
+        │                           - Ground truth answers for each ticket
+        │
+        └── logic/
+            └── ticket_resolver.py  ← Validation & reward calculation
+                                      - is_classification_correct()
+                                      - is_solution_correct()
+                                      - is_escalation_correct()
+                                      - RewardCalculator class (0.0-1.0 per episode)
 ```
+
+### File Purpose Summary
+
+| File | Purpose | Key Classes/Functions |
+|------|---------|----------------------|
+| `models.py` | Type definitions | `SupportAction`, `SupportObservation` |
+| `client.py` | HTTP client | `CustomerSupportEnv` |
+| `baseline_agent.py` | Example agent | `SimpleAgent`, `run_baseline()` |
+| `server/app.py` | FastAPI entry | `create_app()` |
+| `server/customer_support_environment.py` | Core environment | `CustomerSupportEnvironment` |
+| `server/data/tickets.py` | Ticket data | `TICKETS`, `RESOLUTION_POLICIES` |
+| `server/logic/ticket_resolver.py` | Grading engine | `TicketResolver`, `RewardCalculator` |
 
 ---
 
@@ -378,6 +412,4 @@ Then visit: https://huggingface.co/spaces/RavichandraNayakar/my_env
 docker build -t my-env .
 docker run -p 8000:8000 my-env
 ```
-
-## Architecture
 
