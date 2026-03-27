@@ -64,15 +64,33 @@ python demo.py --episodes 5 --task 1
 ## Project Structure
 
 ```
-my_env/
-├── models.py              Types & models
-├── client.py              HTTP client  
-├── baseline_agent.py      Example agent
-└── server/
-    ├── app.py             FastAPI server
-    ├── customer_support_environment.py  Core logic
-    ├── data/tickets.py    14 test tickets
-    └── logic/ticket_resolver.py  Grading
+.
+├── models.py                              Types & models (at root for OpenEnv)
+├── client.py                              HTTP client (at root for OpenEnv)
+├── Dockerfile                             Container config
+├── openenv.yaml                           OpenEnv spec
+├── pyproject.toml                         Dependencies
+├── requirements.txt                       Python requirements
+├── test_minimal_agent.py                  Agent testing
+│
+└── my_env/                                Package root
+    ├── __init__.py                        Clean API exports
+    ├── baseline_agent.py                  Example agent strategy
+    │
+    └── server/
+        ├── __init__.py
+        ├── app.py                         FastAPI server (create_app)
+        ├── Dockerfile                     Alternative Docker config
+        ├── demo.py                        Demo entry point
+        ├── customer_support_environment.py Core 4-phase logic (220 lines)
+        │
+        ├── data/
+        │   ├── __init__.py               Data package exports
+        │   └── tickets.py                14 realistic tickets + RESOLUTION_POLICIES
+        │
+        └── logic/
+            ├── __init__.py
+            └── ticket_resolver.py        Validation + RewardCalculator
 ```
 
 ## How It Works
@@ -240,8 +258,11 @@ docker run -p 8000:8000 my-env
 
 ## Code Guide
 
-- [models.py](my_env/models.py) - Action and observation types
-- [customer_support_environment.py](my_env/server/customer_support_environment.py) - Core 4-step logic
-- [baseline_agent.py](my_env/baseline_agent.py) - Example agent
-- [tickets.py](my_env/server/data/tickets.py) - All 14 tickets + solutions
-- [ticket_resolver.py](my_env/server/logic/ticket_resolver.py) - Grading logic
+- [models.py](models.py) - Action and observation types (at root, OpenEnv requirement)
+- [client.py](client.py) - HTTP client for agents (at root, OpenEnv requirement)
+- [my_env/__init__.py](my_env/__init__.py) - Clean public API
+- [my_env/baseline_agent.py](my_env/baseline_agent.py) - Example agent with strategy
+- [my_env/server/app.py](my_env/server/app.py) - FastAPI server entry
+- [my_env/server/customer_support_environment.py](my_env/server/customer_support_environment.py) - Core 4-phase logic
+- [my_env/server/data/tickets.py](my_env/server/data/tickets.py) - All 14 tickets + RESOLUTION_POLICIES
+- [my_env/server/logic/ticket_resolver.py](my_env/server/logic/ticket_resolver.py) - Validation & grading
