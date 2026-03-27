@@ -93,6 +93,24 @@ python demo.py --episodes 5 --task 1
             └── ticket_resolver.py        Validation + RewardCalculator
 ```
 
+## Files at Root: OpenEnv Interface
+
+**Why `models.py` and `client.py` are at root level:**
+
+The OpenEnv specification requires these files at the package root to enable:
+- **Type safety** - `models.py` defines `SupportAction` and `SupportObservation` types that agents and the server use
+- **Standard client interface** - `client.py` provides `CustomerSupportEnv` for agents to interact with the environment via HTTP
+
+When agents submit code to evaluate your environment, OpenEnv looks for these files at the root to instantiate the proper types. This is part of the OpenEnv validation contract.
+
+**How it works:**
+1. Agent imports: `from models import SupportAction, SupportObservation`
+2. Agent imports: `from client import CustomerSupportEnv`
+3. Environment validates against these root-level type definitions
+4. Server in `my_env/server/app.py` also imports from root: `from models import ...`
+
+This centralized positioning ensures type consistency across agents and the server.
+
 ## How It Works
 
 Agent handles a ticket in 4 steps:
