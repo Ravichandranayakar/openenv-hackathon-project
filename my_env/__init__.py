@@ -10,14 +10,8 @@ Clean API for agents and reviewers:
     obs = env.step(action)
 """
 
-# Type definitions (Gymnasium-style)
-# Import from root level (models.py moved to root for OpenEnv validation)
-import sys
-from pathlib import Path
-root = Path(__file__).parent.parent
-sys.path.insert(0, str(root))
-
-from models import SupportAction, SupportObservation
+# Type definitions
+from my_env.models import SupportAction, SupportObservation
 
 # Environment (4-phase support ticket resolution)
 from my_env.server.customer_support_environment import CustomerSupportEnvironment
@@ -26,8 +20,8 @@ from my_env.server.customer_support_environment import CustomerSupportEnvironmen
 from my_env.server.data.tickets import TICKETS, RESOLUTION_POLICIES, get_random_ticket
 from my_env.server.logic.ticket_resolver import TicketResolver, RewardCalculator
 
-# Client (HTTP wrapper for agents - also moved to root for OpenEnv validation)
-from client import CustomerSupportEnv
+# Client (HTTP wrapper for agents)
+from my_env.client import CustomerSupportEnv
 
 __all__ = [
     "SupportAction",

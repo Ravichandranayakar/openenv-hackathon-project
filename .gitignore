@@ -1,9 +1,30 @@
+# Python environments
 .env
 .venv/
-.venv           
+.venv
+venv/
+env/
+
+# Python cache and build files
 __pycache__/
+*.pyc
+*.pyo
 *.egg-info/
+*.egg
+dist/
+build/
+
+# IDE and OS
 .DS_Store
+.VS_Code/
+.idea/
+*.swp
+*.swo
+
+*.log
+uv.lock
+
+# Project-specific outputs (development/testing)
 outputs/
 test_minimal_agent.py
 test_output.txt
@@ -12,6 +33,8 @@ learning_test_results_20260328_202833.json
 learning_test_results_20260328_202921.json
 agent_learning_test.py
 check_tickets.py
+GETTING_STARTED.md
+STRUCTURE_DIAGNOSIS.txt
 
 test_agent_learning.py
 
