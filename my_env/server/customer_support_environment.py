@@ -61,6 +61,7 @@ class CustomerSupportEnvironment(Environment):
         self.classification_done = False
         self.solution_done = False
         self.escalation_handled = False
+        self.agent_classification = None  # ← Track agent's choice, not ground truth!
     
     def reset(self) -> SupportObservation:
         """
@@ -85,6 +86,7 @@ class CustomerSupportEnvironment(Environment):
         self.classification_done = False
         self.solution_done = False
         self.escalation_handled = False
+        self.agent_classification = None  # ← Reset agent's choice
         
         return self._observation(
             status="open",
@@ -184,6 +186,7 @@ class CustomerSupportEnvironment(Environment):
         
         self.total_reward += classification_reward
         self.classification_done = True
+        self.agent_classification = action.classification  # ← Store agent's choice!
         
         # Create feedback message with ground truth
         correct_type = self.current_ticket["correct_type"]
@@ -225,23 +228,22 @@ class CustomerSupportEnvironment(Environment):
         if action.category is None:
             return self._error_observation("category field required for choose_solution")
         
-        # Get the classification that was chosen
-        current_classification = next(
-            (obs.classification for obs in [self.current_ticket] if obs),
-            None
-        )
-        # Get it from what we stored
-        ticket_classification = self.current_ticket.get("correct_type")
+        # Use the agent's CHOSEN classification from step 1, not ground truth!
+        classification_for_validation = self.agent_classification
+        if classification_for_validation is None:
+            return self._error_observation(
+                "Internal error: Classification not recorded. Must call classify_issue first."
+            )
         
-        # For this step, use the correct classification to validate solutions
+        # For this step, use the AGENT'S classification to validate solutions
         is_category_valid = self.resolver.is_category_valid_for_type(
-            ticket_classification,
+            classification_for_validation,
             action.category
         )
         
         if not is_category_valid:
             return self._error_observation(
-                f"Invalid category '{action.category}' for type '{ticket_classification}'"
+                f"Invalid category '{action.category}' for type '{classification_for_validation}'"
             )
         
         # Check category correctness
@@ -256,10 +258,10 @@ class CustomerSupportEnvironment(Environment):
             action.solution
         )
         
-        # Calculate reward for this step
+        # Calculate reward for this step (using AGENT'S classification, not ground truth)
         solution_reward = RewardCalculator.solution_step(
             self.current_ticket["id"],
-            ticket_classification,
+            classification_for_validation,
             action.category,
             action.solution
         )
