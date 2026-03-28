@@ -65,33 +65,35 @@ python demo.py --episodes 5 --task 1
 
 ```
 .
-├── models.py                              Types & models (at root for OpenEnv)
-├── client.py                              HTTP client (at root for OpenEnv)
-├── Dockerfile                             Container config
-├── openenv.yaml                           OpenEnv spec
-├── pyproject.toml                         Dependencies
-├── requirements.txt                       Python requirements
-├── test_minimal_agent.py                  Agent testing
+├── client.py                              HTTP client (OpenEnv interface)
+├── models.py                              Type definitions (OpenEnv interface)
+├── Dockerfile                             Docker build config
+├── openenv.yaml                           OpenEnv spec + HF Spaces metadata
+├── pyproject.toml                         Python dependencies
+├── requirements.txt                       Additional requirements
+├── README.md                              This file
 │
 └── my_env/                                Package root
-    ├── __init__.py                        Clean API exports
-    ├── baseline_agent.py                  Example agent strategy
+    ├── __init__.py                        Clean public API exports
+    ├── baseline_agent.py                  Example agent with strategy
+    ├── uv.lock                            Locked dependency versions
     │
     └── server/
-        ├── __init__.py
-        ├── app.py                         FastAPI server (create_app)
-        ├── Dockerfile                     Alternative Docker config
-        ├── demo.py                        Demo entry point
-        ├── customer_support_environment.py Core 4-phase logic (220 lines)
+        ├── __init__.py                    Package marker
+        ├── app.py                         FastAPI server (create_app entry)
+        ├── demo.py                        Demo runner for testing
+        ├── customer_support_environment.py 4-phase environment (220 lines)
         │
         ├── data/
-        │   ├── __init__.py               Data package exports
-        │   └── tickets.py                14 realistic tickets + RESOLUTION_POLICIES
+        │   ├── __init__.py               Package marker
+        │   └── tickets.py                14 support tickets + RESOLUTION_POLICIES
         │
         └── logic/
-            ├── __init__.py
-            └── ticket_resolver.py        Validation + RewardCalculator
+            ├── __init__.py               Package marker
+            └── ticket_resolver.py        Validation logic + RewardCalculator
 ```
+
+**Note:** Test files (`test_minimal_agent.py`, `test_complete_walkthrough.py`) are in `.gitignore` and kept locally for development.
 
 ## Files at Root: OpenEnv Interface
 
