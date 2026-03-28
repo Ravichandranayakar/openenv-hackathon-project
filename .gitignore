@@ -1,6 +1,7 @@
 .env
 .venv/
 .venv                # Prevent root-level venv
+.vscode/             # VS Code settings (local)
 __pycache__/
 *.egg-info/
 .DS_Store
