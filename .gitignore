@@ -11,6 +11,7 @@ ANTI_CHEATING_MEASURES.md
 learning_test_results_20260328_202833.json
 learning_test_results_20260328_202921.json
 agent_learning_test.py
+check_tickets.py
 
 test_agent_learning.py
 
