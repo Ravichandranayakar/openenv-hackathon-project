@@ -458,16 +458,23 @@ class CustomerSupportEnvironment(Environment):
         final_episode_reward = episode_reward if episode_reward is not None else self.total_reward
         
         return SupportObservation(
-            # STATE
-            ticket_id=self.current_ticket["id"],
+            # AGENT INPUT (only what agent needs to analyze):
             message=self.current_ticket["message"],
             severity=self.current_ticket["severity"],
-            status=status,
-            task_id=self.current_task_id,
-            task_name=self.TASKS[self.current_task_id]["name"],
-            step_count=self.step_count,
             
-            # FEEDBACK
+            # HIDDEN FROM AGENT (prevent cheating):
+            # ❌ ticket_id - (would enable memorization instead of learning)
+            # ❌ status - (would hint which step we're on)
+            # ❌ task_id - (would hint difficulty level)
+            # ❌ task_name - (would hint difficulty level)
+            # ❌ step_count - (would hint progress)
+            ticket_id="",  # Hidden
+            status="",  # Hidden
+            task_id=0,  # Hidden
+            task_name="",  # Hidden
+            step_count=0,  # Hidden
+            
+            # FEEDBACK (how agent learns):
             classification=classification,
             correct_classification=correct_classification,
             classification_reward=classification_reward,
@@ -481,7 +488,7 @@ class CustomerSupportEnvironment(Environment):
             escalation_reward=escalation_reward,
             closure_reward=closure_reward,
             
-            # GYMNASIUM-STYLE
+            # GYMNASIUM-STYLE (episode tracking):
             reward=final_reward,
             done=final_done,
             truncated=truncated,
@@ -496,13 +503,17 @@ class CustomerSupportEnvironment(Environment):
         penalty = -0.5
         self.total_reward += penalty
         return SupportObservation(
-            ticket_id=self.current_ticket["id"] if self.current_ticket else "unknown",
+            # AGENT INPUT (only what agent needs):
             message=self.current_ticket["message"] if self.current_ticket else "No ticket loaded",
             severity=self.current_ticket.get("severity", "low") if self.current_ticket else "low",
-            status="error",
-            task_id=self.current_task_id,
-            task_name=self.TASKS[self.current_task_id]["name"],
-            step_count=self.step_count,
+            
+            # HIDDEN FROM AGENT (prevent cheating):
+            ticket_id="",  # Hidden
+            status="",  # Hidden
+            task_id=0,  # Hidden
+            task_name="",  # Hidden
+            step_count=0,  # Hidden
+            
             # GYMNASIUM-STYLE
             reward=penalty,
             done=True,

@@ -87,16 +87,14 @@ print("\n✓ Environment created")
 # Reset to get first ticket
 observation = env.reset()
 print(f"\n✓ Environment reset")
-print(f"  - Current ticket ID: {observation.ticket_id}")
 print(f"  - Message: {observation.message[:60]}...")
 print(f"  - Severity: {observation.severity}")
-print(f"  - Step count: {observation.step_count}")
-print(f"  - Status: {observation.status}")
 print(f"  - Total reward so far: {observation.episode_reward}")
 
-# Get ground truth for this ticket
-ground_truth_ticket = get_ticket_by_id(observation.ticket_id)
-print(f"\n   - GROUND TRUTH FOR THIS TICKET:")
+# Get ground truth from environment's current ticket
+ground_truth_ticket = env.current_ticket
+print(f"\n   - GROUND TRUTH FOR THIS TICKET (ticket ID hidden from agent):")
+print(f"     - Actual Ticket ID: {ground_truth_ticket['id']} (NOT visible to agent)")
 print(f"     - Should classify as: {ground_truth_ticket['correct_type']}")
 print(f"     - Should choose category: {ground_truth_ticket['correct_category']}")
 print(f"     - Should choose solution: {ground_truth_ticket['correct_primary_solution']}")
@@ -118,10 +116,8 @@ observation = env.step(action)
 
 print(f"\n✓ Action executed")
 print(f"  - Classification reward: {observation.classification_reward}")
-print(f"  - Step count: {observation.step_count}")
-print(f"  - Status: {observation.status}")
-print(f"  - Total reward: {observation.episode_reward}")
-print(f"  - Done: {observation.done}")
+print(f"  - Total reward so far: {observation.episode_reward}")
+print(f"  - Episode complete: {observation.done}")
 
 print("\n" + "=" * 80)
 print("STEP 5: EXECUTING SECOND ACTION (CHOOSE SOLUTION)")
@@ -141,10 +137,8 @@ observation = env.step(action)
 
 print(f"\n✓ Action executed")
 print(f"  - Solution reward: {observation.solution_reward}")
-print(f"  - Step count: {observation.step_count}")
-print(f"  - Status: {observation.status}")
-print(f"  - Total reward: {observation.episode_reward}")
-print(f"  - Done: {observation.done}")
+print(f"  - Total reward so far: {observation.episode_reward}")
+print(f"  - Episode complete: {observation.done}")
 
 print("\n" + "=" * 80)
 print("STEP 6: EXECUTING THIRD ACTION (ESCALATION)")
@@ -161,10 +155,8 @@ observation = env.step(action)
 
 print(f"\n✓ Action executed")
 print(f"  - Escalation reward: {observation.escalation_reward}")
-print(f"  - Step count: {observation.step_count}")
-print(f"  - Status: {observation.status}")
-print(f"  - Total reward: {observation.episode_reward}")
-print(f"  - Done: {observation.done}")
+print(f"  - Total reward so far: {observation.episode_reward}")
+print(f"  - Episode complete: {observation.done}")
 
 print("\n" + "=" * 80)
 print("STEP 7: EXECUTING FOURTH ACTION (CLOSE TICKET)")
@@ -179,20 +171,15 @@ observation = env.step(action)
 
 print(f"\n✓ Action executed")
 print(f"  - Closure reward: {observation.closure_reward}")
-print(f"  - Step count: {observation.step_count}")
-print(f"  - Status: {observation.status}")
-print(f"  - Total reward: {observation.episode_reward}")
-print(f"  - Done: {observation.done}")
+print(f"  - Total reward so far: {observation.episode_reward}")
+print(f"  - Episode complete: {observation.done}")
 
 print("\n" + "=" * 80)
 print("STEP 8: COMPLETE EPISODE SUMMARY")
 print("=" * 80)
 
 print(f"\n✓ EPISODE COMPLETE")
-print(f"  - Ticket ID: {observation.ticket_id}")
-print(f"  - Final Status: {observation.status}")
 print(f"  - Final Episode Score: {observation.episode_score} / 1.0")
-print(f"  - Total Steps: {observation.step_count}")
 print(f"\n  Score breakdown:")
 print(f"    - Classification: +{0.2} (CORRECT)")
 print(f"    - Solution: +{0.3} (CORRECT)")
@@ -207,9 +194,9 @@ print("=" * 80)
 
 # Reset to new ticket
 observation = env.reset()
-wrong_ticket = get_ticket_by_id(observation.ticket_id)
+wrong_ticket = env.current_ticket
 
-print(f"\n✓ New ticket: {observation.ticket_id}")
+print(f"\n✓ New ticket:")
 print(f"  Message: {observation.message[:60]}...")
 print(f"  Ground truth type: {wrong_ticket['correct_type']}")
 
