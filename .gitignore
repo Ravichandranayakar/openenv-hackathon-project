@@ -6,6 +6,13 @@ __pycache__/
 .DS_Store
 outputs/
 test_minimal_agent.py
-test_complete_walkthrough.py
 test_output.txt
 ANTI_CHEATING_MEASURES.md
+learning_test_results_20260328_202833.json
+learning_test_results_20260328_202921.json
+agent_learning_test.py
+
+test_agent_learning.py
+
+test_complete_walkthrough.py
+final_comprehensive_test.py
