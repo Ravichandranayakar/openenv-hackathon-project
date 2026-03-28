@@ -21,9 +21,9 @@ A production-grade customer support ticket resolution environment. Agents learn 
 
 **Key Features:**
 - Full OpenEnv spec compliance (typed models, reset/step/state, openenv.yaml)
-- 3 task difficulty levels (Easy → Medium → Hard)
+- 3 task difficulty levels (Easy -> Medium -> Hard)
 - 14 realistic pre-generated support tickets
-- Policy-based resolution validation (issue type → category → solution)
+- Policy-based resolution validation (issue type -> category -> solution)
 - 4-phase workflow with step-by-step grading
 - Automated scoring (0.0-1.0 per episode)
 - Baseline agent with example strategy
@@ -65,32 +65,32 @@ python demo.py --episodes 5 --task 1
 
 ```
 .
-├── client.py                              HTTP client (OpenEnv interface)
-├── models.py                              Type definitions (OpenEnv interface)
-├── Dockerfile                             Docker build config
-├── openenv.yaml                           OpenEnv spec + HF Spaces metadata
-├── pyproject.toml                         Python dependencies
-├── requirements.txt                       Additional requirements
-├── README.md                              This file
-│
-└── my_env/                                Package root
-    ├── __init__.py                        Clean public API exports
-    ├── baseline_agent.py                  Example agent with strategy
-    ├── uv.lock                            Locked dependency versions
-    │
-    └── server/
-        ├── __init__.py                    Package marker
-        ├── app.py                         FastAPI server (create_app entry)
-        ├── demo.py                        Demo runner for testing
-        ├── customer_support_environment.py 4-phase environment (220 lines)
-        │
-        ├── data/
-        │   ├── __init__.py               Package marker
-        │   └── tickets.py                14 support tickets + RESOLUTION_POLICIES
-        │
-        └── logic/
-            ├── __init__.py               Package marker
-            └── ticket_resolver.py        Validation logic + RewardCalculator
++-- client.py                              HTTP client (OpenEnv interface)
++-- models.py                              Type definitions (OpenEnv interface)
++-- Dockerfile                             Docker build config
++-- openenv.yaml                           OpenEnv spec + HF Spaces metadata
++-- pyproject.toml                         Python dependencies
++-- requirements.txt                       Additional requirements
++-- README.md                              This file
+|
++-- my_env/                                Package root
+    +-- __init__.py                        Clean public API exports
+    +-- baseline_agent.py                  Example agent with strategy
+    +-- uv.lock                            Locked dependency versions
+    |
+    +-- server/
+        +-- __init__.py                    Package marker
+        +-- app.py                         FastAPI server (create_app entry)
+        +-- demo.py                        Demo runner for testing
+        +-- customer_support_environment.py 4-phase environment (220 lines)
+        |
+        +-- data/
+        |   +-- __init__.py               Package marker
+        |   +-- tickets.py                14 support tickets + RESOLUTION_POLICIES
+        |
+        +-- logic/
+            +-- __init__.py               Package marker
+            +-- ticket_resolver.py        Validation logic + RewardCalculator
 ```
 
 **Note:** Test files (`test_minimal_agent.py`, `test_complete_walkthrough.py`) are in `.gitignore` and kept locally for development.
@@ -207,28 +207,28 @@ Run any: `python demo.py --task 1` (or 2, or 3)
 ## Tickets & Categories
 
 **Billing Issues:**
-- duplicate_charge → refund_duplicate_charge, investigate_fraud
-- wrong_amount → correct_invoice, refund_difference
-- subscription_issue → cancel_subscription, update_subscription
-- fraud → escalate_security, freeze_account
+- duplicate_charge -> refund_duplicate_charge, investigate_fraud
+- wrong_amount -> correct_invoice, refund_difference
+- subscription_issue -> cancel_subscription, update_subscription
+- fraud -> escalate_security, freeze_account
 
 **Account Issues:**
-- password → reset_password_link, send_recovery_email
-- email → update_email_settings, verify_new_email
-- 2fa → reset_2fa, send_recovery_codes
-- security → escalate_security, freeze_account
+- password -> reset_password_link, send_recovery_email
+- email -> update_email_settings, verify_new_email
+- 2fa -> reset_2fa, send_recovery_codes
+- security -> escalate_security, freeze_account
 
 **Bug Issues:**
-- app_crash → update_app_version, clear_cache_restart
-- ui_glitch → clear_cache_restart, escalate_engineering
-- missing_data → sync_data, escalate_engineering
-- critical → escalate_engineering, create_hotfix
+- app_crash -> update_app_version, clear_cache_restart
+- ui_glitch -> clear_cache_restart, escalate_engineering
+- missing_data -> sync_data, escalate_engineering
+- critical -> escalate_engineering, create_hotfix
 
 **Feature Issues:**
-- how_to → explain_feature, send_tutorial
-- capability → escalate_sales, enable_feature_trial
-- api → escalate_sales, schedule_consultation
-- custom → escalate_sales, create_feature_request
+- how_to -> explain_feature, send_tutorial
+- capability -> escalate_sales, enable_feature_trial
+- api -> escalate_sales, schedule_consultation
+- custom -> escalate_sales, create_feature_request
 
 ## API Endpoints
 

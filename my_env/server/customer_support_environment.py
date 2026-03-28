@@ -61,7 +61,7 @@ class CustomerSupportEnvironment(Environment):
         self.classification_done = False
         self.solution_done = False
         self.escalation_handled = False
-        self.agent_classification = None  # ← Track agent's choice, not ground truth!
+        self.agent_classification = None  # <-- Track agent's choice, not ground truth!
     
     def reset(self) -> SupportObservation:
         """
@@ -86,7 +86,7 @@ class CustomerSupportEnvironment(Environment):
         self.classification_done = False
         self.solution_done = False
         self.escalation_handled = False
-        self.agent_classification = None  # ← Reset agent's choice
+        self.agent_classification = None  # <-- Reset agent's choice
         
         return self._observation(
             status="open",
@@ -186,7 +186,7 @@ class CustomerSupportEnvironment(Environment):
         
         self.total_reward += classification_reward
         self.classification_done = True
-        self.agent_classification = action.classification  # ← Store agent's choice!
+        self.agent_classification = action.classification  # <-- Store agent's choice!
         
         # Create feedback message with ground truth
         correct_type = self.current_ticket["correct_type"]
@@ -463,11 +463,11 @@ class CustomerSupportEnvironment(Environment):
             severity=self.current_ticket["severity"],
             
             # HIDDEN FROM AGENT (prevent cheating):
-            # ❌ ticket_id - (would enable memorization instead of learning)
-            # ❌ status - (would hint which step we're on)
-            # ❌ task_id - (would hint difficulty level)
-            # ❌ task_name - (would hint difficulty level)
-            # ❌ step_count - (would hint progress)
+            # [X] ticket_id - (would enable memorization instead of learning)
+            # [X] status - (would hint which step we're on)
+            # [X] task_id - (would hint difficulty level)
+            # [X] task_name - (would hint difficulty level)
+            # [X] step_count - (would hint progress)
             ticket_id="",  # Hidden
             status="",  # Hidden
             task_id=0,  # Hidden
