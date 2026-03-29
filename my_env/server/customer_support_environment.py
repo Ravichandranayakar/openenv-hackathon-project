@@ -55,7 +55,6 @@ class CustomerSupportEnvironment(Environment):
         self.current_ticket = None
         self.current_task_id = 1
         self._state = None
-        self.episode_done = False
         self.step_count = 0
         self.total_reward = 0.0
         self.classification_done = False
@@ -80,7 +79,6 @@ class CustomerSupportEnvironment(Environment):
         )
         
         # Reset flags
-        self.episode_done = False
         self.step_count = 0
         self.total_reward = 0.0
         self.classification_done = False
@@ -383,7 +381,6 @@ class CustomerSupportEnvironment(Environment):
         
         closure_reward = RewardCalculator.closure_step(escalation_correct)
         self.total_reward += closure_reward
-        self.episode_done = True
         
         message = (
             f"Ticket closed. Episode complete. "
@@ -496,7 +493,6 @@ class CustomerSupportEnvironment(Environment):
     
     def _error_observation(self, error_message: str) -> SupportObservation:
         """Return error observation and mark episode done."""
-        self.episode_done = True
         penalty = -0.5
         self.total_reward += penalty
         return SupportObservation(
