@@ -1,5 +1,5 @@
 """
-🤖 CURRICULUM LEARNING AGENT - Customer Support Assistant
+ CURRICULUM LEARNING AGENT - Customer Support Assistant
 
 What it does:
 - Learns to classify support tickets (billing, account, bug, feature)

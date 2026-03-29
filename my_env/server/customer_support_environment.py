@@ -420,7 +420,6 @@ class CustomerSupportEnvironment(Environment):
         correct_escalation: Optional[bool] = None,
         escalation_reward: float = None,
         closure_reward: float = None,
-        episode_done: bool = False,
         episode_reward: float = None,
         episode_score: float = None,
     ) -> SupportObservation:
@@ -445,15 +444,13 @@ class CustomerSupportEnvironment(Environment):
             correct_escalation: Whether escalation decision was correct
             escalation_reward: Reward for escalation step
             closure_reward: Reward for closure step
-            episode_done: (deprecated - use done)
             episode_reward: Total reward for episode
             episode_score: Normalized score
         
         Returns:
             SupportObservation with Gymnasium-style rewards
         """
-        # Use new done/reward params, fallback to legacy episode_done if needed
-        final_done = done or episode_done
+        final_done = done
         final_reward = reward
         final_episode_reward = episode_reward if episode_reward is not None else self.total_reward
         
