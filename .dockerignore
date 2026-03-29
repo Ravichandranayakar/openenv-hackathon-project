@@ -45,3 +45,4 @@ outputs
 .env
 .env.local
 
+openenv/
