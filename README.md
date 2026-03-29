@@ -13,111 +13,99 @@ tags:
   - agent-training
 ---
 
-# Customer Support OpenEnv Environment
+## Customer Support OpenEnv Environment
 
-A production-grade **Customer Support ticket resolution environment** built with the **OpenEnv framework** (Meta PyTorch + Hugging Face). Agents learn to classify issues, select solutions, and decide on escalation with realistic, deterministic grading.
+This project is a simple, realistic environment for training AI agents to handle customer support tickets. Agents learn to classify issues, pick solutions, and decide when to escalate.
 
-## Quick Start
+---
 
-```bash
-# Install dependencies
-pip install -e my_env
+### How to Run
 
-# Start server (Terminal 1)
-python -m uvicorn my_env.server.app:app --reload --port 8000
+1. **Install dependencies:**
+   ```bash
+   pip install -e my_env
+   ```
+2. **Start the server:**
+   ```bash
+   python -m uvicorn my_env.server.app:app --reload --port 8000
+   ```
+3. **Train or test an agent:**
+   ```bash
+   python improved_agent_training.py
+   # or run demo.py for a quick test
+   ```
 
-# Run baseline agent (Terminal 2)
-python my_env/baseline_agent.py --url http://localhost:8000 --episodes 5 --task 1
+---
+
+### How It Works (Agent Workflow)
+
+1. Agent receives a support ticket (text + severity)
+2. Agent classifies the issue (billing, account, bug, feature)
+3. Agent chooses a solution (category + action)
+4. Agent decides if escalation is needed
+5. Agent closes the ticket
+
+At each step, the agent gets feedback and a reward. The goal is to maximize the score (max 1.0 per ticket).
+
+---
+
+### Project Structure
+
+```
+openenv-hackathon-project/
+├── README.md
+├── Dockerfile
+├── pyproject.toml
+├── openenv.yaml
+├── demo.py
+├── improved_agent_training.py
+├── my_env/
+│   ├── __init__.py
+│   ├── agents.py
+│   ├── client.py
+│   ├── models.py
+│   └── server/
+│       ├── app.py
+│       ├── customer_support_environment.py
+│       └── ...
+└── tests/
+    └── test_cheating_comparison.py
 ```
 
-**Expected output:**
-```
-Episode 1/5 | Step 3/4 completed
-  Classification: [OK] | Solution: [OK] | Escalation: [OK]
-  Score: 1.0 (100%) | Agent learning...
-Episode 2/5 ...
-```
+---
 
-## What This Environment Teaches Agents
+### Key Features
 
-This is a **learning environment** where agents practice handling customer support tickets. Here's what happens:
+- Realistic customer support workflow (classify, solve, escalate, close)
+- 3 difficulty levels (Easy, Medium, Hard)
+- Step-by-step feedback for learning
+- OpenEnv and Gymnasium compatible
+- Ready for HuggingFace Spaces and Docker
 
-**Agent Goal:** Get the highest score by making correct decisions at each step.
+---
 
-**How it works:**
-1. Agent receives a customer's support ticket (message + severity)
-2. Agent classifies: is this a billing, account, bug, or feature issue?
-3. Agent chooses: what category and solution should we offer?
-4. Agent decides: does this need human escalation?
-5. Agent closes: ticket is resolved
-
-**Agent Learns By:** Each wrong answer shows the correct answer. Over multiple episodes, agents learn patterns and improve accuracy.
-
-**Reward System:** Max 1.0 per episode (0.2 for classify + 0.3 for solution + 0.3 for escalation + 0.2 for closure).
-
-**Why it matters:** Real customer support needs quick, accurate decisions. This environment teaches agents to think through each step.
-
-## Key Features
-
--  **Full OpenEnv spec** - typed models, reset/step/state, openenv.yaml
--  **Gymnasium API** - explicit reward, done, truncated fields
--  **3 difficulty levels** - Easy, Medium, Hard (task_id 1-3)
--  **Policy-based grading** - issue type -> category -> solution -> escalation
--  **14 realistic tickets** - pre-generated with ground truth answers
--  **Step-by-step feedback** - agents receive ground truth when wrong
--  **Docker ready** - runs in HF Spaces with `openenv push`
--  **Baseline agent included** - example learning strategy
-
-## Environment Design
-
-### Gymnasium-Style API
-
-Agents interact using the **Gymnasium standard pattern**:
+### Example Agent Loop
 
 ```python
-obs = env.reset()  # Start episode
-
+obs = env.reset()
 while not obs.done:
-    action = SupportAction(action_type="...", ...)
+    action = agent.act(obs)
     obs = env.step(action)
-    
-    # Read Gymnasium returns:
-    reward = obs.reward          # Points for THIS action
-    done = obs.done              # Episode complete?
-    episode_reward = obs.episode_reward  # Total accumulated
+    print(obs.reward, obs.resolution_message)
 ```
 
-**Key fields in SupportObservation:**
-- `reward: float` - Reward for the current step
-- `done: bool` - Episode is complete (terminal state)
-- `truncated: bool` - Episode was cut short (max steps)
-- `episode_reward: float` - Total reward accumulated (0.0-1.0)
-- `resolution_message: str` - Feedback with ground truth if wrong
+---
 
-### Action Space
+### API Endpoints
 
-Agents interact through 4 sequential actions:
+- `POST /reset` – Start new episode
+- `POST /step` – Take an action
+- `GET /state` – Get current state
+- `GET /health` – Health check
 
-**Action 1: Classify Issue**
-```json
-{
-  "action_type": "classify_issue",
-  "classification": "billing|account|bug|feature"
-}
-```
+---
 
-**Action 2: Choose Solution**
-```json
-{
-  "action_type": "choose_solution",
-  "category": "duplicate_charge|password|app_crash|...",
-  "solution": "refund_duplicate_charge|reset_password_link|..."
-}
-```
-
-**Action 3: Escalation Decision**
-```json
-{
+For more details, see the code and comments in `my_env/`.
   "action_type": "escalate_decision",
   "should_escalate": true|false
 }
@@ -313,5 +301,48 @@ docker build -t my-env .
 docker run -p 8000:8000 my-env
 ```
 
-## Architecture
+
+## Project Structure
+
+The repository is organized for clarity and ease of review:
+
+```
+openenv-hackathon-project/
+├── .gitignore
+├── .dockerignore
+├── README.md
+├── Dockerfile
+├── pyproject.toml
+├── uv.lock
+├── openenv.yaml
+├── demo.py
+├── improved_agent_training.py
+├── my_env/
+│   ├── __init__.py
+│   ├── agents.py
+│   ├── client.py
+│   ├── models.py
+│   └── server/
+│       ├── __init__.py
+│       ├── app.py
+│       ├── customer_support_environment.py
+│       ├── data/
+│       │   ├── __init__.py
+│       │   └── tickets.py
+│       └── logic/
+│           ├── __init__.py
+│           └── ticket_resolver.py
+└── tests/
+  ├── test_cheating_comparison.py
+  ├── test_agent_learning.py
+  ├── test_complete_walkthrough.py
+  ├── test_minimal_agent.py
+  └── final_comprehensive_test.py
+```
+
+- **Root**: Submission files, configuration, and documentation.
+- **my_env/**: Single clean package with all environment logic, agent, client, and models.
+- **tests/**: All test files, tracked in git (not ignored).
+
+No duplicate files, no build artifacts, and no unnecessary outputs are committed. This structure is optimized for OpenEnv, HuggingFace Spaces, and easy review by judges.
 
