@@ -10,8 +10,14 @@ Clean API for agents and reviewers:
     obs = env.step(action)
 """
 
-# Type definitions
-from my_env.models import SupportAction, SupportObservation
+# Type definitions (from root-level per OpenEnv spec)
+import sys
+from pathlib import Path
+_root = Path(__file__).parent.parent
+if str(_root) not in sys.path:
+    sys.path.insert(0, str(_root))
+
+from models import SupportAction, SupportObservation
 
 # Environment (4-phase support ticket resolution)
 from my_env.server.customer_support_environment import CustomerSupportEnvironment
@@ -21,7 +27,7 @@ from my_env.server.data.tickets import TICKETS, RESOLUTION_POLICIES, get_random_
 from my_env.server.logic.ticket_resolver import TicketResolver, RewardCalculator
 
 # Client (HTTP wrapper for agents)
-from my_env.client import CustomerSupportEnv
+from client import CustomerSupportEnv
 
 __all__ = [
     "SupportAction",
