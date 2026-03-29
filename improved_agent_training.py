@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-🚀 HOW TO TRAIN THE AGENT - Customer Support Learning System
+ HOW TO TRAIN THE AGENT - Customer Support Learning System
 
 This script shows how our support agent learns to handle customer tickets.
 
@@ -14,9 +14,9 @@ The agent learns through experience:
 - Do this 500 times → Agent becomes expert!
 
 Key improvements shown:
-✅ Escalation accuracy: 3% → 86.6% (learns to identify critical issues!)
-✅ Classification accuracy: 67% → 72.5% (better at tagging issues)
-✅ Solution accuracy: 100% (picks right solutions)
+   Escalation accuracy: 3% → 86.6% (learns to identify critical issues!)
+   Classification accuracy: 67% → 72.5% (better at tagging issues)
+   Solution accuracy: 100% (picks right solutions)
 
 Just run:  python improved_agent_training.py
 
@@ -49,7 +49,7 @@ def main():
     agent.print_results()
     
     # Show phase performance
-    print(f"\n🎯 PHASE COMPARISON:")
+    print(f"\n PHASE COMPARISON:")
     print(f"   Easy   → Average Reward increase: {phase_rewards.get('Easy', 0):+.3f}")
     print(f"   Medium → Average Reward increase: {phase_rewards.get('Medium', 0):+.3f}")
     print(f"   Hard   → Average Reward increase: {phase_rewards.get('Hard', 0):+.3f}")
@@ -58,11 +58,11 @@ def main():
     print("KEY ACHIEVEMENTS")
     print("="*80)
     print("""
-✅ Curriculum Learning: Agent learned fundamentals before complex cases
-✅ Expanded Dataset: 45 tickets with clear escalation keywords
-✅ Longer Training: 500 episodes vs 100 before
-✅ Escalation Keywords: Agent learned FRAUD, HACKED, CRITICAL, BREACH, etc.
-✅ Better Learning Signals: Clear patterns from expanded data
+ Curriculum Learning: Agent learned fundamentals before complex cases
+ Expanded Dataset: 45 tickets with clear escalation keywords
+ Longer Training: 500 episodes vs 100 before
+ Escalation Keywords: Agent learned FRAUD, HACKED, CRITICAL, BREACH, etc.
+ Better Learning Signals: Clear patterns from expanded data
 
 EXPECTED IMPROVEMENTS:
   - Escalation Accuracy: 3% → 70%+ (with clear keywords)
@@ -70,10 +70,10 @@ EXPECTED IMPROVEMENTS:
   - Overall Performance: Better generalization
 
 ANTI-CHEATING VERIFIED:
-  ✓ No access to ticket_id, status, task_id (all hidden)
-  ✓ Only message + severity visible
-  ✓ All learning from message patterns
-  ✓ Ready for judges!
+   No access to ticket_id, status, task_id (all hidden)
+   Only message + severity visible
+   All learning from message patterns
+   Ready for judges!
     """)
 
 if __name__ == "__main__":

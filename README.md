@@ -53,25 +53,38 @@ At each step, the agent gets feedback and a reward. The goal is to maximize the 
 
 ```
 openenv-hackathon-project/
+├── __init__.py
+├── client.py
+├── models.py
+├── .gitignore
+├── .dockerignore
 ├── README.md
 ├── Dockerfile
 ├── pyproject.toml
+├── uv.lock
 ├── openenv.yaml
 ├── demo.py
 ├── improved_agent_training.py
 ├── my_env/
 │   ├── __init__.py
 │   ├── agents.py
-│   ├── client.py
-│   ├── models.py
 │   └── server/
+│       ├── __init__.py
 │       ├── app.py
 │       ├── customer_support_environment.py
-│       └── ...
+│       ├── data/
+│       │   ├── __init__.py
+│       │   └── tickets.py
+│       └── logic/
+│           ├── __init__.py
+│           └── ticket_resolver.py
 └── tests/
-    └── test_cheating_comparison.py
+    ├── test_cheating_comparison.py
+    ├── test_agent_learning.py
+    ├── test_complete_walkthrough.py
+    ├── test_minimal_agent.py
+    └── final_comprehensive_test.py
 ```
-
 ---
 
 ### Key Features
@@ -300,49 +313,3 @@ Then visit: https://huggingface.co/spaces/RavichandraNayakar/my_env
 docker build -t my-env .
 docker run -p 8000:8000 my-env
 ```
-
-
-## Project Structure
-
-The repository is organized for clarity and ease of review:
-
-```
-openenv-hackathon-project/
-├── .gitignore
-├── .dockerignore
-├── README.md
-├── Dockerfile
-├── pyproject.toml
-├── uv.lock
-├── openenv.yaml
-├── demo.py
-├── improved_agent_training.py
-├── my_env/
-│   ├── __init__.py
-│   ├── agents.py
-│   ├── client.py
-│   ├── models.py
-│   └── server/
-│       ├── __init__.py
-│       ├── app.py
-│       ├── customer_support_environment.py
-│       ├── data/
-│       │   ├── __init__.py
-│       │   └── tickets.py
-│       └── logic/
-│           ├── __init__.py
-│           └── ticket_resolver.py
-└── tests/
-  ├── test_cheating_comparison.py
-  ├── test_agent_learning.py
-  ├── test_complete_walkthrough.py
-  ├── test_minimal_agent.py
-  └── final_comprehensive_test.py
-```
-
-- **Root**: Submission files, configuration, and documentation.
-- **my_env/**: Single clean package with all environment logic, agent, client, and models.
-- **tests/**: All test files, tracked in git (not ignored).
-
-No duplicate files, no build artifacts, and no unnecessary outputs are committed. This structure is optimized for OpenEnv, HuggingFace Spaces, and easy review by judges.
-
