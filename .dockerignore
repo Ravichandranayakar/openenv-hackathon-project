@@ -1,23 +1,27 @@
-# Version control
 .git
 .gitignore
-
-# Python cache
-__pycache__
-*.pyc
+.dockerignore
+__pycache__/
+*.py[cod]
 *.pyo
 *.pyd
-.Python
-*.egg-info
-dist
-build
-.eggs
-
-# Virtual environments
-my_env/.venv
-venv
-env
-.venv
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+outputs/
+*.log
+.ipynb_checkpoints/
+tests/
 
 # IDE
 .vscode

@@ -1,25 +1,30 @@
-# Python environments
-.env
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
 .venv/
-.venv
 venv/
 env/
 
-# Python cache and build files
-__pycache__/
-*.pyc
-*.pyo
+# Build / package metadata
 *.egg-info/
-*.egg
 dist/
 build/
+.eggs/
 
-# IDE and OS
-.DS_Store
-.VS_Code/
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE / OS files
+.vscode/
 .idea/
-*.swp
-*.swo
+.DS_Store
+Thumbs.db
 
 *.log
 uv.lock
