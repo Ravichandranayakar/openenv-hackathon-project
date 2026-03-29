@@ -29,6 +29,8 @@ Thumbs.db
 *.log
 uv.lock
 
+openenv/
+
 # Project-specific outputs (development/testing)
 outputs/
 test_minimal_agent.py
