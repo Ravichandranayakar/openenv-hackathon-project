@@ -6,6 +6,10 @@ Standard endpoints (/reset, /step, /state, /schema, /ws) provided by create_app(
 """
 
 from openenv.core.env_server.http_server import create_app
+from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from starlette.requests import Request
 
 # Support both in-repo and standalone imports
 try:
@@ -36,6 +40,39 @@ app = create_app(
 async def health():
     """Health check endpoint."""
     return {"status": "ok"}
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_error_handler(request: Request, exc: RequestValidationError):
+    """
+    Convert raw Pydantic validation errors into readable, user-friendly format.
+    Helps both humans and agents understand what went wrong.
+    """
+    errors = []
+    for error in exc.errors():
+        field = error.get("loc", [])[-1] if error.get("loc") else "unknown"
+        error_type = error.get("type", "unknown")
+        
+        # Create readable error messages
+        if error_type == "missing":
+            message = f"Missing required field: {field}"
+        elif error_type == "string_type":
+            message = f"Field '{field}' must be a string"
+        elif error_type == "enum":
+            message = f"Field '{field}' has an invalid value"
+        else:
+            message = f"Field '{field}': {error.get('msg', 'invalid value')}"
+        
+        errors.append({"field": field, "message": message})
+    
+    return JSONResponse(
+        status_code=422,
+        content={
+            "error": "Validation Error",
+            "details": errors,
+            "hint": "Please check that all required fields are filled in correctly."
+        }
+    )
 
 
 @app.post("/tasks")
