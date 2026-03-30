@@ -119,16 +119,26 @@ class CustomerSupportEnvironment(Environment):
             Updated SupportObservation with reward
         """
         try:
-            # Validate action
+            # Validate action exists
             if action is None:
                 return self._error_observation("Action cannot be None")
             
+            # Convert dict to SupportAction if needed (for compatibility)
+            if isinstance(action, dict):
+                try:
+                    action = SupportAction(**action)
+                except Exception as e:
+                    return self._error_observation(f"Invalid action format: {str(e)}")
+            
+            # Validate action has required fields
             if not hasattr(action, 'action_type'):
                 return self._error_observation("Action must have action_type field")
             
-            if not self.resolver.is_valid_action_type(action.action_type):
+            # Validate action_type is recognized
+            action_type = action.action_type
+            if not self.resolver.is_valid_action_type(action_type):
                 return self._error_observation(
-                    f"Invalid action_type: {action.action_type}. "
+                    f"Invalid action_type: {action_type}. "
                     f"Must be one of: {', '.join(self.resolver.VALID_ACTIONS)}"
                 )
             
@@ -160,13 +170,15 @@ class CustomerSupportEnvironment(Environment):
         if self.classification_done:
             return self._error_observation("Classification already done")
         
-        if action.classification is None:
+        # Safely access classification field
+        classification = getattr(action, 'classification', None)
+        if classification is None:
             return self._error_observation("classification field required for classify_issue")
         
         # Validate classification is one of the allowed types
-        if action.classification not in self.resolver.VALID_CLASSIFICATIONS:
+        if not self.resolver.is_valid_classification(classification):
             return self._error_observation(
-                f"Invalid classification: {action.classification}. "
+                f"Invalid classification: {classification}. "
                 f"Must be one of: {', '.join(self.resolver.VALID_CLASSIFICATIONS)}"
             )
         
@@ -220,10 +232,14 @@ class CustomerSupportEnvironment(Environment):
         if self.solution_done:
             return self._error_observation("Solution already chosen")
         
-        if action.solution is None:
+        # Safely access fields
+        solution = getattr(action, 'solution', None)
+        category = getattr(action, 'category', None)
+        
+        if solution is None:
             return self._error_observation("solution field required for choose_solution")
         
-        if action.category is None:
+        if category is None:
             return self._error_observation("category field required for choose_solution")
         
         # Use the agent's CHOSEN classification from step 1, not ground truth!
@@ -236,32 +252,32 @@ class CustomerSupportEnvironment(Environment):
         # For this step, use the AGENT'S classification to validate solutions
         is_category_valid = self.resolver.is_category_valid_for_type(
             classification_for_validation,
-            action.category
+            category
         )
         
         if not is_category_valid:
             return self._error_observation(
-                f"Invalid category '{action.category}' for type '{classification_for_validation}'"
+                f"Invalid category '{category}' for type '{classification_for_validation}'"
             )
         
         # Check category correctness
         is_category_correct = self.resolver.is_category_correct(
             self.current_ticket["id"],
-            action.category
+            category
         )
         
         # Check solution correctness
         is_solution_correct = self.resolver.is_solution_correct(
             self.current_ticket["id"],
-            action.solution
+            solution
         )
         
         # Calculate reward for this step (using AGENT'S classification, not ground truth)
         solution_reward = RewardCalculator.solution_step(
             self.current_ticket["id"],
             classification_for_validation,
-            action.category,
-            action.solution
+            category,
+            solution
         )
         
         self.total_reward += solution_reward
@@ -270,7 +286,7 @@ class CustomerSupportEnvironment(Environment):
         # Build base message
         if is_category_correct and is_solution_correct:
             message = (
-                f"Selected category '{action.category}', solution '{action.solution}'. "
+                f"Selected category '{category}', solution '{solution}'. "
                 f"[OK] CORRECT! (+{solution_reward:.1f}) -> Next: Make escalation decision."
             )
         else:
@@ -288,7 +304,7 @@ class CustomerSupportEnvironment(Environment):
             ground_truth = " | ".join(feedback_parts)
             
             message = (
-                f"Selected category '{action.category}', solution '{action.solution}'. "
+                f"Selected category '{category}', solution '{solution}'. "
                 f"[FAIL] INCORRECT. {ground_truth} (+{solution_reward:.1f}) -> Next: Make escalation decision."
             )
         
@@ -296,9 +312,9 @@ class CustomerSupportEnvironment(Environment):
             status="solution_selected",
             reward=solution_reward,
             done=False,
-            category=action.category,
+            category=category,
             correct_category=is_category_correct,
-            solution=action.solution,
+            solution=solution,
             correct_solution=is_solution_correct,
             solution_reward=solution_reward,
             resolution_message=message
@@ -314,25 +330,27 @@ class CustomerSupportEnvironment(Environment):
         if self.escalation_handled:
             return self._error_observation("Escalation decision already made")
         
-        if action.should_escalate is None:
+        # Safely access should_escalate field
+        should_escalate = getattr(action, 'should_escalate', None)
+        if should_escalate is None:
             return self._error_observation("should_escalate field required for escalate_decision")
         
         # Check if escalation decision is correct
         is_escalation_correct = self.resolver.is_escalation_correct(
             self.current_ticket["id"],
-            action.should_escalate
+            should_escalate
         )
         
         # Calculate reward for escalation decision
         escalation_reward = RewardCalculator.escalation_step(
             self.current_ticket["id"],
-            action.should_escalate
+            should_escalate
         )
         
         self.total_reward += escalation_reward
         self.escalation_handled = True
         
-        escalation_text = "escalate" if action.should_escalate else "close"
+        escalation_text = "escalate" if should_escalate else "close"
         
         # Build message with ground truth if incorrect
         if is_escalation_correct:
@@ -353,7 +371,7 @@ class CustomerSupportEnvironment(Environment):
             status="escalation_decided",
             reward=escalation_reward,
             done=False,
-            escalation_decision=action.should_escalate,
+            escalation_decision=should_escalate,
             correct_escalation=is_escalation_correct,
             escalation_reward=escalation_reward,
             resolution_message=message
