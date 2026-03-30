@@ -58,7 +58,7 @@ REWARD SCHEME:
 """
 
 from typing import Optional
-from pydantic import Field
+from pydantic import Field, ConfigDict
 from openenv.core.env_server.types import Action, Observation
 
 
@@ -112,6 +112,8 @@ class SupportObservation(Observation):
     
     Maps to Gymnasium return: (observation, reward, done, truncated, info)
     """
+    
+    model_config = ConfigDict(extra="allow")  # Allow extra fields from OpenEnv serialization (e.g., episode_done)
     
     # STATE (What the agent needs to know about the ticket/episode)
     

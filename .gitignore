@@ -44,3 +44,10 @@ test_cheating_comparison.py
 
 test_agent_learning.py
 test/
+
+
+openenv/
+.venv/
+env/
+__pycache__/
+outputs/

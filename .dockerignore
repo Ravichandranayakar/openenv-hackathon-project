@@ -46,3 +46,9 @@ outputs
 .env.local
 
 openenv/
+
+openenv/
+.venv/
+env/
+__pycache__/
+outputs/
