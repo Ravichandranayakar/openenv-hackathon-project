@@ -51,3 +51,6 @@ openenv/
 env/
 __pycache__/
 outputs/
+
+PROJECT_DATA_ANALYSIS.md
+PROJECT_STRUCTURE.md
