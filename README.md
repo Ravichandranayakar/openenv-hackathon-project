@@ -1,5 +1,6 @@
 ---
 title: Customer Support OpenEnv Environment
+emoji:  🤖
 colorFrom: purple
 colorTo: pink
 sdk: docker
