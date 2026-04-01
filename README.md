@@ -22,15 +22,31 @@ This project is a simple, realistic environment for training AI agents to handle
 
 ### How to Run
 
-1. **Install dependencies:**
+1. **Activate virtual environment:**
    ```bash
-   pip install -e my_env
+   # Windows PowerShell
+   .\openenv\Scripts\Activate.ps1
+   
+   # macOS/Linux
+   source openenv/bin/activate
    ```
-2. **Start the server:**
+
+2. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Start the server:**
    ```bash
    python -m uvicorn my_env.server.app:app --reload --port 8000
    ```
-3. **Train or test an agent:**
+
+4. **Run tests:**
+   ```bash
+   python tests/final_comprehensive_test.py
+   ```
+
+5. **Test a single scenario:**
    ```bash
    python improved_agent_training.py
    # or run demo.py for a quick test
@@ -54,37 +70,37 @@ At each step, the agent gets feedback and a reward. The goal is to maximize the 
 
 ```
 openenv-hackathon-project/
-├── __init__.py
-├── client.py
-├── models.py
-├── .gitignore
-├── .dockerignore
 ├── README.md
-├── Dockerfile
+├── requirements.txt
 ├── pyproject.toml
-├── uv.lock
+├── Dockerfile
+├── .dockerignore
 ├── openenv.yaml
-├── demo.py
-├── improved_agent_training.py
-├── my_env/
+├── models.py                              # Pydantic models for Action & Observation
+├── client.py                              # HTTP client for testing
+├── __init__.py
+│
+├── my_env/                                # Main OpenEnv environment package
 │   ├── __init__.py
-│   ├── agents.py
+│   ├── agents.py                          # Agent implementations
 │   └── server/
 │       ├── __init__.py
-│       ├── app.py
-│       ├── customer_support_environment.py
+│       ├── app.py                         # FastAPI server entry point
+│       ├── customer_support_environment.py # Core environment logic
 │       ├── data/
 │       │   ├── __init__.py
-│       │   └── tickets.py
+│       │   └── tickets.py                 # Ticket dataset & utilities
 │       └── logic/
 │           ├── __init__.py
-│           └── ticket_resolver.py
-└── tests/
-    ├── test_cheating_comparison.py
-    ├── test_agent_learning.py
-    ├── test_complete_walkthrough.py
-    ├── test_minimal_agent.py
-    └── final_comprehensive_test.py
+│           └── ticket_resolver.py         # Reward calculator & solution logic
+│
+├── tests/                                 # Test suite
+│   ├── final_comprehensive_test.py        # Main comprehensive test (anti-cheating)
+│   ├── test_complete_walkthrough.py
+│  
+├── demo.py                                # Quick demo script
+├── improved_agent_training.py             # Agent training example
+
 ```
 ---
 
