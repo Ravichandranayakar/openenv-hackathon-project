@@ -7,14 +7,15 @@ Complete evidence that agents learn WITHOUT cheating
 import sys
 import random
 from collections import defaultdict
+from pathlib import Path
 
-try:
-    from my_env import CustomerSupportEnvironment, SupportAction
-    from my_env.server.data.tickets import TICKETS
-except ImportError:
-    from server.customer_support_environment import CustomerSupportEnvironment
-    from server.data.tickets import TICKETS
-    from models import SupportAction
+# Add parent directory to path so imports work
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
+from my_env.server.customer_support_environment import CustomerSupportEnvironment
+from my_env.server.data.tickets import TICKETS
+from models import SupportAction
 
 def print_banner(title):
     """Print formatted banner"""
