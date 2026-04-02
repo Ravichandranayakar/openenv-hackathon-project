@@ -35,8 +35,20 @@ app = create_app(
     SupportObservation
 )
 
+# Customize OpenAPI metadata
+app.title = "Customer Support OpenEnv"
+app.description = "AI Agent training environment for customer support ticket handling. Agents learn to classify issues, choose solutions, and make escalation decisions."
+app.version = "1.0.0"
+app.openapi_tags = [
+    {"name": "Environment Control", "description": "Core operations for environment interaction (reset, step)"},
+    {"name": "State Management", "description": "Operations for inspecting environment state"},
+    {"name": "Environment Info", "description": "Information about the environment"},
+    {"name": "Schema", "description": "JSON Schema endpoints for actions and observations"},
+    {"name": "Health", "description": "Service health and status checks"},
+]
 
-@app.get("/health")
+
+@app.get("/health", tags=["Health"])
 async def health():
     """Health check endpoint."""
     return {"status": "ok"}
@@ -75,9 +87,9 @@ async def validation_error_handler(request: Request, exc: RequestValidationError
     )
 
 
-@app.post("/tasks")
+@app.post("/tasks", tags=["Environment Info"])
 async def list_tasks():
-    """List available tasks."""
+    """List available tasks (Easy, Medium, Hard difficulty levels)."""
     return {
         "tasks": [
             {"id": 1, "name": "Easy", "description": "Simple ticket classification"},
