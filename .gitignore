@@ -60,4 +60,4 @@ test_scenarios_runner.py
 
 test_scenario_7_auto.py
 cmd.txt
-
+.env

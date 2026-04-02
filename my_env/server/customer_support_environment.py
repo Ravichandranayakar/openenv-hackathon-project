@@ -54,7 +54,8 @@ class CustomerSupportEnvironment(Environment):
         self.resolver = TicketResolver()
         self.current_ticket = None
         self.current_task_id = 1
-        self._state = None
+        # Initialize state with empty values - will be populated on first reset
+        self._state = State(episode_id="not-started", step_count=0)
         self.step_count = 0
         self.total_reward = 0.0
         self.classification_done = False
