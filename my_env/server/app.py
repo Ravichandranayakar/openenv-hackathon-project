@@ -160,7 +160,7 @@ def get_env_state():
     except Exception as e:
         return f"Error: {str(e)}", ""
 
-def execute_step(action_type, classification, category, solution, should_escalate, escalate_reason):
+def execute_step(action_type, classification, category, solution, should_escalate, escalate_reason, message):
     """Execute action in environment."""
     try:
         action_dict = {
@@ -171,10 +171,11 @@ def execute_step(action_type, classification, category, solution, should_escalat
             "should_escalate": should_escalate.lower() == "true",
             "escalation_reason": escalate_reason or "customer_request"
         }
-        
+        # Optionally include message if your environment expects it
+        if message:
+            action_dict["message"] = message
         action = SupportAction(**action_dict)
         observation = _environment.step(action)
-        
         status = f"Step executed. Reward: {observation.reward}\nDone: {observation.done}"
         return status, json.dumps(observation.dict(), indent=2)
     except Exception as e:
