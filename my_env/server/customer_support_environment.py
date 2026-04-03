@@ -62,6 +62,7 @@ class CustomerSupportEnvironment(Environment):
         self.solution_done = False
         self.escalation_handled = False
         self.agent_classification = None  # <-- Track agent's choice, not ground truth!
+        self.agent_escalation_decision = None  # <-- Track agent's escalation choice!
     
     def reset(self) -> SupportObservation:
         """
@@ -86,6 +87,7 @@ class CustomerSupportEnvironment(Environment):
         self.solution_done = False
         self.escalation_handled = False
         self.agent_classification = None  # <-- Reset agent's choice
+        self.agent_escalation_decision = None  # <-- Reset agent's escalation choice
         
         return self._observation(
             status="open",
@@ -350,6 +352,7 @@ class CustomerSupportEnvironment(Environment):
         
         self.total_reward += escalation_reward
         self.escalation_handled = True
+        self.agent_escalation_decision = should_escalate  # <-- Store agent's decision!
         
         escalation_text = "escalate" if should_escalate else "close"
         
@@ -390,12 +393,10 @@ class CustomerSupportEnvironment(Environment):
             return self._error_observation("Must make escalation decision first")
         
         # Award closure reward based on whether escalation was correct
-        # Get the escalation correctness from previous step
+        # Use the agent's escalation decision from the previous step
         escalation_correct = self.resolver.is_escalation_correct(
             self.current_ticket["id"],
-            # We don't have the action here, but we can infer from context
-            # Simplified: award closure if all steps were correct
-            True  # Placeholder - will be improved
+            self.agent_escalation_decision  # Use stored agent decision
         )
         
         closure_reward = RewardCalculator.closure_step(escalation_correct)
