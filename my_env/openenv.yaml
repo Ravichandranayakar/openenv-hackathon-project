@@ -1,0 +1,19 @@
+name: customer-support-env
+version: 1.0.0
+description: Customer Support Environment - An AI training environment for handling support tickets
+
+environment:
+  class: my_env.server.customer_support_environment:CustomerSupportEnvironment
+  action_type: models:SupportAction
+  observation_type: models:SupportObservation
+
+server:
+  host: 0.0.0.0
+  port: 8000
+  module: my_env.server.app
+  app: app
+
+metadata:
+  author: Hackathon Team
+  website: https://huggingface.co/spaces
+  license: BSD-3-Clause
