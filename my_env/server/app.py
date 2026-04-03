@@ -129,10 +129,6 @@ async def validation_error_handler(request: Request, exc: RequestValidationError
 # MANUAL ENDPOINT ROUTING (using persistent environment instance)
 # ============================================================================
 
-@app.get("/", include_in_schema=False)
-async def root():
-    """Root path returns blank response."""
-    return Response(content="", status_code=200)
 
 
 # ============================================================================
