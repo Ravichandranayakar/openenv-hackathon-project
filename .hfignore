@@ -53,6 +53,10 @@ test_cheating_comparison.py
 test_agent_learning.py
 PROJECT_DATA_ANALYSIS.md
 test/
+test_endpoints.py
+debug_env.py
+test_flow.py
+test_ticket_load.py
 
 # Node modules (if any)
 node_modules/

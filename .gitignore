@@ -62,3 +62,7 @@ test_scenarios_runner.py
 test_scenario_7_auto.py
 cmd.txt
 .env
+test_endpoints.py
+debug_env.py
+test_flow.py
+test_ticket_load.py

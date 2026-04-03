@@ -41,7 +41,7 @@ class CustomerSupportEnvironment(Environment):
     4. Closing tickets appropriately
     """
     
-    SUPPORTS_CONCURRENT_SESSIONS = True
+    SUPPORTS_CONCURRENT_SESSIONS = False  # Single environment instance for all requests
     
     TASKS = {
         1: {"name": "Easy - Simple ticket classification", "difficulty": "easy"},
@@ -170,6 +170,12 @@ class CustomerSupportEnvironment(Environment):
     
     def _handle_classify(self, action: SupportAction) -> SupportObservation:
         """Handle classify_issue action - Step 1 of 4."""
+        # Check if episode was started (reset called)
+        if self.current_ticket is None:
+            return self._error_observation(
+                "No episode in progress. Call POST /reset first to load a ticket."
+            )
+        
         if self.classification_done:
             return self._error_observation("Classification already done")
         

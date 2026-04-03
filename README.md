@@ -130,12 +130,12 @@ while not obs.done:
 
 Endpoint | Method | Status | Description
 ---------|--------|--------|-------
-/reset | GET | 200 | Initialize new episode and load a random ticket
-/step | POST | 200 | Send action (classify, choose solution, escalate, close)
-/state | GET | 200 | Get current episode state
-/health | GET | 200 | Health check endpoint
-/schema | GET | 200 | Get action and observation schemas
-/tasks | POST | 200 | List available task difficulties (Easy/Medium/Hard)
+/reset | **POST** | 200 | Initialize new episode and load a random ticket
+/step | **POST** | 200 | Send action (classify, choose solution, escalate, close)
+/state | **GET** | 200 | Get current episode state
+/health | **GET** | 200 | Health check endpoint
+/schema | **GET** | 200 | Get action and observation schemas
+/tasks | **POST** | 200 | List available task difficulties (Easy/Medium/Hard)
 
 ---
 
