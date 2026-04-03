@@ -61,7 +61,7 @@ class CustomerSupportEnvironment(Environment):
         self.classification_done = False
         self.solution_done = False
         self.escalation_handled = False
-        self.agent_classification = None  # <-- Track agent's choice, not ground truth!
+        self.agent_classification = None  # <-- Track agent's choice
         self.agent_escalation_decision = None  # <-- Track agent's escalation choice!
     
     def reset(self) -> SupportObservation:
