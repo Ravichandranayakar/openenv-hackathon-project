@@ -208,8 +208,7 @@ def take_action(action_type, category_choice, solution_choice, escalate_choice):
 
 
 # Create Gradio interface
-theme = gr.themes.Soft(primary_hue="green", secondary_hue="red")
-with gr.Blocks(title="Customer Support OpenEnv", theme=theme) as gradio_app:
+with gr.Blocks(title="Customer Support OpenEnv") as gradio_app:
     gr.Markdown("# Customer Support OpenEnv Interface")
     gr.Markdown("*Interactive demo for the customer support RL environment*")
     
@@ -307,7 +306,7 @@ async def web():
 
 # Mount Gradio app at /web after all other routes
 gradio_app.queue()
-app = gr.mount_gradio_app(app, gradio_app, path="/web")
+gr.mount_gradio_app(app, gradio_app, path="/web")
 
 
 @app.post("/reset", tags=["Environment Control"])
