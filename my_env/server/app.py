@@ -8,7 +8,7 @@ Uses SINGLE environment instance maintained across all requests (not using creat
 
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from starlette.requests import Request
 import json
 
@@ -127,6 +127,12 @@ async def validation_error_handler(request: Request, exc: RequestValidationError
 # ============================================================================
 # MANUAL ENDPOINT ROUTING (using persistent environment instance)
 # ============================================================================
+
+@app.get("/", include_in_schema=False)
+async def root():
+    """Root path returns blank response."""
+    return Response(content="", status_code=200)
+
 
 @app.post("/reset", tags=["Environment Control"])
 async def reset_endpoint():
