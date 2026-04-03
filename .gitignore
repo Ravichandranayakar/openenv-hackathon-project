@@ -41,6 +41,7 @@ check_tickets.py
 GETTING_STARTED.md
 STRUCTURE_DIAGNOSIS.txt
 test_cheating_comparison.py
+PROJECT_DATA_ANALYSIS.md
 
 test_agent_learning.py
 test/

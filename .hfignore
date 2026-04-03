@@ -51,6 +51,7 @@ GETTING_STARTED.md
 STRUCTURE_DIAGNOSIS.txt
 test_cheating_comparison.py
 test_agent_learning.py
+PROJECT_DATA_ANALYSIS.md
 test/
 
 # Node modules (if any)
