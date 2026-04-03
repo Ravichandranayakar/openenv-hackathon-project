@@ -189,32 +189,32 @@ import json
 
 # Reset
 r = requests.post('http://127.0.0.1:8000/reset', json={})
-print('1️  Reset:', r.status_code, '✅')
+print('1️  Reset:', r.status_code, '200')
 
 # Step 1: Classify
 r = requests.post('http://127.0.0.1:8000/step', json={
     'action': {'action_type': 'classify_issue', 'classification': 'billing'}
 })
-print('2️  Classify:', r.status_code, '✅')
+print('2️  Classify:', r.status_code, '200')
 
 # Step 2: Solution
 r = requests.post('http://127.0.0.1:8000/step', json={
     'action': {'action_type': 'choose_solution', 'category': 'duplicate_charge', 'solution': 'refund_duplicate_charge'}
 })
-print('3️  Solution:', r.status_code, '✅')
+print('3️  Solution:', r.status_code, '200')
 
 # Step 3: Escalation
 r = requests.post('http://127.0.0.1:8000/step', json={
     'action': {'action_type': 'escalate_decision', 'should_escalate': False}
 })
-print('4️  Escalation:', r.status_code, '✅')
+print('4️  Escalation:', r.status_code, '200')
 
 # Step 4: Close
 r = requests.post('http://127.0.0.1:8000/step', json={
     'action': {'action_type': 'close_ticket'}
 })
 data = r.json()
-print('5️  Close:', r.status_code, f'Score: {data[\"observation\"][\"episode_score\"]}', '✅')
+print('5️  Close:', r.status_code, f'Score: {data[\"observation\"][\"episode_score\"]}', '200')
 "
 ```
 
@@ -304,13 +304,14 @@ This is how real RL training works!
 ```bash
 openenv push --name RavichandraNayakar/my_env --token <hf_token>
 ```
-
+**Hugging Face Space URL**
+```
+visit: https://huggingface.co/spaces/RavichandraNayakar/customer_support_env
+```
 **If HF Space shows blank screen:** Use this direct link instead:
 ```
-https://ravichandranayakar-customer-support-env.hf.space/web/
+visit: https://ravichandranayakar-customer-support-env.hf.space/web
 ```
-
-Then visit: https://huggingface.co/spaces/RavichandraNayakar/my_env
 
 ### Docker
 
