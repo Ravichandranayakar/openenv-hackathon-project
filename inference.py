@@ -22,12 +22,12 @@ load_dotenv()
 
 # Configuration
 API_BASE_URL = os.environ.get("API_BASE_URL", "http://localhost:8000")
-MODEL_NAME = os.environ.get("MODEL_NAME", "gpt-4")
-HF_TOKEN = os.environ.get("HF_TOKEN", "")
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+MODEL_NAME = os.environ.get("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")  # Match .env
+HF_TOKEN = os.environ.get("HF_TOKEN")  # No default - must be set
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
 # Use HF_TOKEN if available, otherwise fall back to OPENAI_API_KEY
-API_KEY = HF_TOKEN if HF_TOKEN else OPENAI_API_KEY
+API_KEY = HF_TOKEN or OPENAI_API_KEY
 
 # Initialize OpenAI client (API_BASE_URL is for OpenEnv server, not for OpenAI)
 client = OpenAI(
