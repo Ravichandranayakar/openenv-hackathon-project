@@ -70,38 +70,58 @@ At each step, the agent gets feedback and a reward. The goal is to maximize the 
 
 ```
 openenv-hackathon-project/
-├── README.md
-├── requirements.txt
-├── pyproject.toml
-├── Dockerfile
-├── .dockerignore
-├── openenv.yaml
-├── models.py                              # Pydantic models for Action & Observation
-├── client.py                              # HTTP client for testing
-├── __init__.py
+│
+├── Configuration & Documentation
+│   ├── README.md                          # Main project documentation
+│   ├── API_USAGE_GUIDE.md                 # Complete API endpoint guide with examples
+│   ├── pyproject.toml                     # Python project metadata
+│   ├── requirements.txt                   # Python dependencies
+│   ├── Dockerfile                         # Docker container configuration
+│   ├── .dockerignore                      # Docker build exclusions
+│   ├── .gitignore                         # Git exclusions
+│   ├── .hfignore                          # HuggingFace exclusions
+│   ├── openenv.yaml                       # Main OpenEnv spec (root level)
+│   └── uv.lock                            # Dependency lock file
+│
+├── Root-Level Scripts & Entry Points
+│   ├── inference.py                       # Hackathon inference script (logging format: [START]/[STEP]/[END])
+│   ├── client.py                          # HTTP client for testing endpoints
+│   ├── models.py                          # Pydantic models (Action, Observation)
+│   ├── demo.py                            # Quick demo of environment
+│   ├── improved_agent_training.py         # Advanced agent training example
+│   └── __init__.py                        # Python package marker
 │
 ├── my_env/                                # Main OpenEnv environment package
 │   ├── __init__.py
-│   ├── agents.py                          # Agent implementations
-│   └── server/
+│   ├── agents.py                          # Agent baseline implementations
+│   ├── openenv.yaml                       # OpenEnv spec (my_env level, optional override)
+│   │
+│   └── server/                            # FastAPI server & core environment logic
 │       ├── __init__.py
-│       ├── app.py                         # FastAPI server entry point
-│       ├── customer_support_environment.py # Core environment logic
-│       ├── data/
+│       ├── app.py                         # FastAPI server with 6 endpoints (/reset, /step, /state, /schema, /health, /tasks)
+│       ├── customer_support_environment.py # Core RL environment class
+│       │
+│       ├── data/                          # Ticket data and utilities
 │       │   ├── __init__.py
-│       │   └── tickets.py                 # Ticket dataset & utilities
-│       └── logic/
+│       │   └── tickets.py                 # Ticket dataset, categories, solutions
+│       │
+│       └── logic/                         # Reward and resolution logic
 │           ├── __init__.py
-│           └── ticket_resolver.py         # Reward calculator & solution logic
+│           └── ticket_resolver.py         # Reward calculation, solution validation
 │
-├── tests/                                 # Test suite
-│   ├── final_comprehensive_test.py        # Main comprehensive test (anti-cheating)
-│   ├── test_complete_walkthrough.py
-│  
-├── demo.py                                # Quick demo script
-├── improved_agent_training.py             # Agent training example
+├── tests/                                 # Comprehensive test suite
+│   ├── final_comprehensive_test.py        # Main anti-cheating test suite
+│   ├── test_complete_walkthrough.py       # Full episode workflow test
+│
 
 ```
+
+**Key Files at a Glance:**
+- **API Server**: `my_env/server/app.py` (FastAPI with persistent environment)
+- **Core Logic**: `my_env/server/customer_support_environment.py` + `my_env/server/logic/ticket_resolver.py`
+- **Inference**: `inference.py` (for hackathon submission with proper logging)
+- **Testing**: `tests/final_comprehensive_test.py` (anti-cheating measures)
+- **API Docs**: `API_USAGE_GUIDE.md` (complete examples for using endpoints)
 ---
 
 ### Key Features
@@ -139,104 +159,68 @@ Endpoint | Method | Status | Description
 
 ---
 
-For more details, see the code and comments in `my_env/`.
-  "action_type": "escalate_decision",
-  "should_escalate": true|false
-}
+###  API Usage Guide
+
+**For detailed examples, request/response formats, and complete workflows, see:**
+
+ **[API_USAGE_GUIDE.md](./API_USAGE_GUIDE.md)** ← **START HERE**
+
+This guide includes:
+- ✅ Step-by-step curl examples for each endpoint
+- ✅ Complete episode workflow with actual response bodies
+- ✅ Valid action types and formats
+- ✅ Reward structure explanation
+- ✅ Python code examples
+- ✅ Error handling & troubleshooting
+- ✅ OpenAPI Swagger UI access
+
+---
+
+### Quick Start: Test the API Locally
+
+```bash
+# Terminal 1: Start server
+python -m uvicorn my_env.server.app:app --port 8000
+
+# Terminal 2: Run full episode test
+python -c "
+import requests
+import json
+
+# Reset
+r = requests.post('http://127.0.0.1:8000/reset', json={})
+print('1️  Reset:', r.status_code, '✅')
+
+# Step 1: Classify
+r = requests.post('http://127.0.0.1:8000/step', json={
+    'action': {'action_type': 'classify_issue', 'classification': 'billing'}
+})
+print('2️  Classify:', r.status_code, '✅')
+
+# Step 2: Solution
+r = requests.post('http://127.0.0.1:8000/step', json={
+    'action': {'action_type': 'choose_solution', 'category': 'duplicate_charge', 'solution': 'refund_duplicate_charge'}
+})
+print('3️  Solution:', r.status_code, '✅')
+
+# Step 3: Escalation
+r = requests.post('http://127.0.0.1:8000/step', json={
+    'action': {'action_type': 'escalate_decision', 'should_escalate': False}
+})
+print('4️  Escalation:', r.status_code, '✅')
+
+# Step 4: Close
+r = requests.post('http://127.0.0.1:8000/step', json={
+    'action': {'action_type': 'close_ticket'}
+})
+data = r.json()
+print('5️  Close:', r.status_code, f'Score: {data[\"observation\"][\"episode_score\"]}', '✅')
+"
 ```
 
-**Action 4: Close Ticket**
-```json
-{
-  "action_type": "close_ticket"
-}
-```
+---
 
-### Observation Space
-
-**What agents see and how to read it:**
-
-```python
-# STATE - What the agent needs to know
-observation.ticket_id          # "T001"
-observation.message            # "Database connection timing out..."
-observation.severity           # "low" | "medium" | "high"
-observation.status             # "open" | "classified" | "resolved" | "error"
-
-# FEEDBACK - How the agent did on this step
-observation.classification     # What the agent classified as
-observation.correct_classification  # True/False
-observation.classification_reward    #  +0.2 if correct, +0.0 if wrong
-
-observation.category           # Agent's chosen category
-observation.correct_category   # True/False  
-observation.solution           # Agent's chosen solution
-observation.correct_solution   # True/False
-observation.solution_reward    # +0.3 if correct, +0.0 if wrong
-
-observation.escalation_decision # Agent's true/false decision
-observation.correct_escalation  # True/False
-observation.escalation_reward   # +0.3 if correct, +0.0 if wrong
-
-# GYMNASIUM RETURNS - Standard RL API
-observation.reward             # Reward for THIS step (0.0-0.3)
-observation.done               # Episode complete? True/False
-observation.truncated          # Cut short by max steps? True/False
-
-# EPISODE SUMMARY
-observation.episode_reward     # Total accumulated (0.0-1.0)
-observation.episode_score      # Normalized score (0.0-1.0)
-observation.resolution_message # Feedback text + ground truth if wrong
-```
-
-**When agent is wrong, agent sees ground truth:**
-```
-[FAIL] INCORRECT. Correct answer: 'bug' (Learn: 'bug' issues are technical problems)
-Correct decision: ESCALATE
-Category - Correct: 'app_crash' | Solution - Correct: 'restart_service'
-```
-
-### Reward Function
-
-| Phase | Action | Reward | Scoring |
-|-------|--------|--------|---------|
-| 1 | classify_issue (correct) | +0.2 | 20% |
-| 2 | choose_solution (correct) | +0.3 | 30% |
-| 3 | escalate_decision (correct) | +0.3 | 30% |
-| 4 | close_ticket (if phase 3 correct) | +0.2 | 20% |
-
-**Max Episode Reward: 1.0**
-
-## Tasks
-
-**Task 1 - Easy:** 
-- Simple unambiguous tickets (billing refunds, password resets)
-- Minimal escalation required
-- Example: Duplicate charge, account lockout
-
-**Task 2 - Medium:**
-- Mixed ticket types with some escalation cases
-- Requires category reasoning
-- Example: Fraud investigation, email verification issues
-
-**Task 3 - Hard:**
-- Complex security/critical issues
-- Frequent escalation scenarios
-- Example: Account hacked, critical feature broken, data loss
-
-## Tickets & Resolution Policies
-
-### Supported Categories
-
-**Billing Issues:**
-- duplicate_charge -> refund_duplicate_charge, investigate_fraud
-- wrong_amount -> correct_invoice, refund_difference
-- subscription_issue -> cancel_subscription, update_subscription
-- fraud -> escalate_security, freeze_account
-
-**Account Issues:**
-- password -> reset_password_link, send_recovery_email
-- email -> update_email_settings, verify_new_email
+For more details, see [API_USAGE_GUIDE.md](./API_USAGE_GUIDE.md) for complete endpoint documentation.
 - 2fa -> reset_2fa, send_recovery_codes
 - security -> escalate_security, freeze_account
 
