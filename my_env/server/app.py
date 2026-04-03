@@ -141,41 +141,85 @@ async def root():
 
 
 # Create Gradio interface - simple and compatible with FastAPI mounting
-def get_status(action: str) -> str:
-    """Get environment status."""
+def reset_env():
+    """Reset environment."""
+    try:
+        observation = _environment.reset()
+        state = _environment.state
+        status = f"Environment reset successfully.\nEpisode ID: {state.episode_id}\nStep: {state.step_count}"
+        return status, json.dumps(observation.dict(), indent=2)
+    except Exception as e:
+        return f"Error: {str(e)}", ""
+
+def get_env_state():
+    """Get current state."""
     try:
         state = _environment.state
-        if action == "Status":
-            result = "Customer Support Environment\n"
-            result += f"Status: Running\n"
-            result += f"Episode ID: {state.episode_id}\n"
-            result += f"Step Count: {state.step_count}\n"
-        elif action == "Reset":
-            obs = _environment.reset()
-            state = _environment.state
-            result = f"Environment Reset\n"
-            result += f"Episode ID: {state.episode_id}\n"
-            result += f"New Ticket: {obs.message}\n"
-        else:
-            result = "Available API Endpoints:\n"
-            result += "POST /reset - Start new episode\n"
-            result += "POST /step - Execute action\n"
-            result += "GET /state - Check state\n"
-            result += "GET /schema - Get action schema\n"
-            result += "GET /health - Health check\n"
-            result += "POST /tasks - Available tasks"
-        return result
+        status = f"Current State\nEpisode ID: {state.episode_id}\nStep: {state.step_count}"
+        return status, json.dumps({"episode_id": state.episode_id, "step_count": state.step_count}, indent=2)
     except Exception as e:
-        return f"Error: {str(e)}"
+        return f"Error: {str(e)}", ""
+
+def execute_step(action_type, classification, category, solution, should_escalate, escalate_reason):
+    """Execute action in environment."""
+    try:
+        action_dict = {
+            "action_type": action_type or "classify_issue",
+            "classification": classification or "billing",
+            "category": category or "general",
+            "solution": solution or "refund",
+            "should_escalate": should_escalate.lower() == "true",
+            "escalation_reason": escalate_reason or "customer_request"
+        }
+        
+        action = SupportAction(**action_dict)
+        observation = _environment.step(action)
+        
+        status = f"Step executed. Reward: {observation.reward}\nDone: {observation.done}"
+        return status, json.dumps(observation.dict(), indent=2)
+    except Exception as e:
+        return f"Error: {str(e)}", ""
 
 
-gradio_app = gr.Interface(
-    fn=get_status,
-    inputs=gr.Dropdown(choices=["Status", "Reset", "API"], label="Select"),
-    outputs="text",
-    title="Customer Support OpenEnv Demo",
-    description="Use API endpoints for full interaction"
-)
+with gr.Blocks(title="Customer Support OpenEnv") as gradio_app:
+    gr.Markdown("# Customer Support OpenEnv Playground")
+    
+    with gr.Row():
+        with gr.Column():
+            gr.Markdown("## Control Panel")
+            reset_btn = gr.Button("Reset", size="lg")
+            state_btn = gr.Button("Get state", size="lg")
+            
+            status_display = gr.Textbox(
+                label="Status",
+                interactive=False,
+                value="Click Reset to start"
+            )
+        
+        with gr.Column():
+            gr.Markdown("## Raw JSON response")
+            response_display = gr.Textbox(
+                label="Response",
+                interactive=False,
+                lines=10,
+                value=""
+            )
+    
+    gr.Markdown("## Take Action")
+    
+    with gr.Row():
+        action_type = gr.Textbox(label="Action Type", value="classify_issue")
+        classification = gr.Textbox(label="Classification", value="billing")
+        category = gr.Textbox(label="Category", value="general")
+        solution = gr.Textbox(label="Solution", value="refund")
+        should_escalate = gr.Textbox(label="Should Escalate", value="false")
+        escalate_reason = gr.Textbox(label="Escalate Reason", value="customer_request")
+    
+    step_btn = gr.Button("Step", size="lg")
+    
+    reset_btn.click(reset_env, outputs=[status_display, response_display])
+    state_btn.click(get_env_state, outputs=[status_display, response_display])
+    step_btn.click(execute_step, inputs=[action_type, classification, category, solution, should_escalate, escalate_reason], outputs=[status_display, response_display])
 
 
 # Mount Gradio app at /web after all other routes
