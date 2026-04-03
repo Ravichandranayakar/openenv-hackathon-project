@@ -208,7 +208,8 @@ def take_action(action_type, category_choice, solution_choice, escalate_choice):
 
 
 # Create Gradio interface
-with gr.Blocks(title="Customer Support OpenEnv", theme=gr.themes.Soft(primary_hue="green", secondary_hue="red")) as gradio_app:
+theme = gr.themes.Soft(primary_hue="green", secondary_hue="red")
+with gr.Blocks(title="Customer Support OpenEnv", theme=theme) as gradio_app:
     gr.Markdown("# Customer Support OpenEnv Interface")
     gr.Markdown("*Interactive demo for the customer support RL environment*")
     
