@@ -298,12 +298,6 @@ with gr.Blocks(title="Customer Support OpenEnv") as gradio_app:
     )
 
 
-@app.get("/web", include_in_schema=False)
-async def web():
-    """Web path - serve Gradio UI."""
-    return Response(content="", status_code=200)
-
-
 # Mount Gradio app at /web after all other routes
 gradio_app.queue()
 gr.mount_gradio_app(app, gradio_app, path="/web")
