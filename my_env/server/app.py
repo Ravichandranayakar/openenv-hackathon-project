@@ -34,7 +34,7 @@ _environment = CustomerSupportEnvironment()
 app = FastAPI(
     title="Customer Support OpenEnv",
     description="""
-🤖 **Customer Support Environment** - An AI training environment for handling support tickets.
+**Customer Support Environment** - An AI training environment for handling support tickets.
 
 Agents learn to:
 - **Classify issues** (billing, account, bug, feature)

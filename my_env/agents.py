@@ -204,14 +204,14 @@ class CurriculumLearningAgent:
         print("FINAL RESULTS - 500 EPISODE TRAINING")
         print("="*80)
         
-        print(f"\n📊 OVERALL STATISTICS:")
+        print(f"\n OVERALL STATISTICS:")
         print(f"   Episodes Trained:       {self.episodes_seen}")
         print(f"   Average Reward:         {self.total_reward / self.episodes_seen:+.3f}")
         print(f"   Best Episode:           {max(self.episode_rewards):+.3f}")
         print(f"   Worst Episode:          {min(self.episode_rewards):+.3f}")
         
         # Per-action accuracy
-        print(f"\n📇 PER-ACTION ACCURACY:")
+        print(f"\n PER-ACTION ACCURACY:")
         for action in ['classification', 'solution', 'escalation']:
             if action in self.action_accuracy:
                 acc_data = self.action_accuracy[action]
@@ -224,7 +224,7 @@ class CurriculumLearningAgent:
                 print(f"     - Avg Reward:    {avg_reward:+.3f}")
         
         # Learning improvement
-        print(f"\n📈 LEARNING IMPROVEMENT:")
+        print(f"\n LEARNING IMPROVEMENT:")
         first_50 = sum(self.episode_rewards[:50]) / 50
         last_50 = sum(self.episode_rewards[-50:]) / 50
         improvement = last_50 - first_50
@@ -235,12 +235,12 @@ class CurriculumLearningAgent:
         print(f"   Improvement:            {improvement:+.3f} ({improvement_pct:+.1f}%)")
         
         if improvement > 0:
-            print(f"\n   ✅ AGENT LEARNED! Improvement: {improvement_pct:.1f}%")
+            print(f"\n   AGENT LEARNED! Improvement: {improvement_pct:.1f}%")
         else:
-            print(f"\n   ⚠️  No improvement detected")
+            print(f"\n    No improvement detected")
         
         # Learned escalation keywords
-        print(f"\n🎓 LEARNED ESCALATION KEYWORDS:")
+        print(f"\n LEARNED ESCALATION KEYWORDS:")
         print(f"   Agent learned to recognize {len(self.escalation_keywords)} escalation signals:")
         sorted_kw = sorted(list(self.escalation_keywords))
         for i, kw in enumerate(sorted_kw[:15]):
