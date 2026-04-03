@@ -170,7 +170,7 @@ This test demonstrates that agents trained on the OpenEnv environment:
     print(f"   Best Episode:      {max(agent.episode_rewards):+.3f}")
     print(f"   Worst Episode:     {min(agent.episode_rewards):+.3f}")
     
-    print(f"\n📇 Per-Action Accuracy:")
+    print(f"\n Per-Action Accuracy:")
     for action in ['classification', 'solution', 'escalation']:
         if action in agent.action_accuracy:
             acc_data = agent.action_accuracy[action]
@@ -216,11 +216,11 @@ This test demonstrates that agents trained on the OpenEnv environment:
     print(f"   Relative Improvement:       {improvement_pct:+.1f}%")
     
     if improvement > 0:
-        print(f"\n   AGENT IS LEARNING - Positive improvement detected")
+        print(f"\n   --> AGENT IS LEARNING - Positive improvement detected")
     elif improvement < 0:
-        print(f"\n    Performance decreased - agent may need better strategy")
+        print(f"\n     Performance decreased - agent may need better strategy")
     else:
-        print(f"\n    Stable performance - agent plateaued")
+        print(f"\n   -->  Stable performance - agent plateaued")
     
     # Discovered Patterns
     print_section("6. DISCOVERED PATTERNS")
@@ -241,7 +241,7 @@ This test demonstrates that agents trained on the OpenEnv environment:
                 reverse=True
             )[:2]
             
-            print(f"   🔑 '{keyword}':")
+            print(f"   '{keyword}':")
             for action, stats in best_actions:
                 if stats['total'] > 0:
                     success_rate = stats['success'] / stats['total'] * 100
@@ -251,19 +251,19 @@ This test demonstrates that agents trained on the OpenEnv environment:
     print_section("7. ANTI-CHEATING VERIFICATION")
     
     print("""
-    Ticket IDs Hidden:
+   --> Ticket IDs Hidden:
        Agent cannot memorize patterns like "T001 = billing"
        
-    Status Hidden:
+   --> Status Hidden:
        Agent cannot use progression hints (open → classified → resolved)
        
-    Difficulty Hidden:
+   --> Difficulty Hidden:
        Agent cannot exploit Easy/Medium/Hard patterns
        
-    Step Count Hidden:
+   --> Step Count Hidden:
        Agent cannot shortcut based on which step (1/2/3/4) it's on
        
-    Learning is Message-Based:
+   --> Learning is Message-Based:
        Only visible inputs are customer message + severity
        All learning comes from reward feedback, not shortcuts
     """)
@@ -272,18 +272,18 @@ This test demonstrates that agents trained on the OpenEnv environment:
     print_section("8. REPRODUCIBILITY & FAIRNESS")
     
     print("""
-    Deterministic:
+   --> Deterministic:
        Same tickets, same order = reproducible results
        
-    Auditable:
+   --> Auditable:
        All changes logged and documented
        Test scripts show exact behavior
        
-    Generalizable:
+   --> Generalizable:
        Agent learns patterns that work on UNSEEN tickets
        Not just memorizing training set
        
-    Fair:
+   --> Fair:
        No agent can achieve 100% without genuine learning
        High scores = real problem-solving ability
     """)
@@ -294,18 +294,18 @@ This test demonstrates that agents trained on the OpenEnv environment:
     print(f"""
 EVIDENCE OF HONEST LEARNING:
 
- Agent improved from {first_20:+.3f} to {last_20:+.3f} ({improvement_pct:+.1f}% improvement)
+--> Agent improved from {first_20:+.3f} to {last_20:+.3f} ({improvement_pct:+.1f}% improvement)
 
- Agent discovered keyword patterns:
+--> Agent discovered keyword patterns:
    - Associated "charged" with "billing"
    - Associated "password" with "account"
    - Learned escalation rules based on message content
 
- All anti-cheating measures verified:
+--> All anti-cheating measures verified:
    - Hidden: ticket_id, status, task_id, task_name, step_count
    - Visible: message, severity (the only REAL inputs)
 
- Environment forces genuine learning:
+--> Environment forces genuine learning:
    - No shortcuts via ID memorization
    - No progression hints via status
    - No difficulty pattern matching

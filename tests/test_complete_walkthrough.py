@@ -20,7 +20,7 @@ print("=" * 80)
 print("STEP 1: LOADING AND CHECKING DATA")
 print("=" * 80)
 
-print(f"\n✓ Loaded {len(TICKETS)} tickets from dataset")
+print(f"\n--> Loaded {len(TICKETS)} tickets from dataset")
 print("\nSample tickets:")
 for i, ticket in enumerate(TICKETS[:3]):
     print(f"\n  Ticket {i+1}: {ticket['id']}")
@@ -36,7 +36,7 @@ print("\n" + "=" * 80)
 print("STEP 2: TESTING REWARD SYSTEM")
 print("=" * 80)
 
-print("\n✓ Testing reward calculations...")
+print("\n--> Testing reward calculations...")
 
 # Pick first ticket
 test_ticket = get_ticket_by_id("T001")
@@ -60,7 +60,7 @@ closure_reward = 0.2  # Always 0.2 for closure
 print(f"Step 4 - Close ticket: Reward = {closure_reward}")
 
 total_correct = classification_reward + solution_reward + escalation_reward + closure_reward
-print(f"\n✓ TOTAL REWARD (all correct): {total_correct:.2f} / 1.0")
+print(f"\n--> TOTAL REWARD (all correct): {total_correct:.2f} / 1.0")
 
 print("\n--- SCENARIO B: WRONG ANSWERS ---")
 # Wrong answers
@@ -74,7 +74,7 @@ wrong_escalation_reward = RewardCalculator.escalation_step("T001", not test_tick
 print(f"Step 3 - Escalate WRONG: Reward = {wrong_escalation_reward}")
 
 total_wrong = wrong_classification_reward + wrong_solution_reward + wrong_escalation_reward + closure_reward
-print(f"\n✓ TOTAL REWARD (mostly wrong): {total_wrong:.2f} / 1.0")
+print(f"\n--> TOTAL REWARD (mostly wrong): {total_wrong:.2f} / 1.0")
 
 print("\n" + "=" * 80)
 print("STEP 3: ENVIRONMENT INITIALIZATION")
@@ -82,11 +82,11 @@ print("=" * 80)
 
 # Create environment (already imported at top)
 env = CustomerSupportEnvironment()
-print("\n✓ Environment created")
+print("\n--> Environment created")
 
 # Reset to get first ticket
 observation = env.reset()
-print(f"\n✓ Environment reset")
+print(f"\n--> Environment reset")
 print(f"  - Message: {observation.message[:60]}...")
 print(f"  - Severity: {observation.severity}")
 print(f"  - Total reward so far: {observation.episode_reward}")
@@ -114,7 +114,7 @@ action = SupportAction(
 )
 observation = env.step(action)
 
-print(f"\n✓ Action executed")
+print(f"\n--> Action executed")
 print(f"  - Classification reward: {observation.classification_reward}")
 print(f"  - Total reward so far: {observation.episode_reward}")
 print(f"  - Episode complete: {observation.done}")
@@ -135,7 +135,7 @@ action = SupportAction(
 )
 observation = env.step(action)
 
-print(f"\n✓ Action executed")
+print(f"\n--> Action executed")
 print(f"  - Solution reward: {observation.solution_reward}")
 print(f"  - Total reward so far: {observation.episode_reward}")
 print(f"  - Episode complete: {observation.done}")
@@ -153,7 +153,7 @@ action = SupportAction(
 )
 observation = env.step(action)
 
-print(f"\n✓ Action executed")
+print(f"\n--> Action executed")
 print(f"  - Escalation reward: {observation.escalation_reward}")
 print(f"  - Total reward so far: {observation.episode_reward}")
 print(f"  - Episode complete: {observation.done}")
@@ -169,7 +169,7 @@ action = SupportAction(
 )
 observation = env.step(action)
 
-print(f"\n✓ Action executed")
+print(f"\n--> Action executed")
 print(f"  - Closure reward: {observation.closure_reward}")
 print(f"  - Total reward so far: {observation.episode_reward}")
 print(f"  - Episode complete: {observation.done}")
@@ -178,7 +178,7 @@ print("\n" + "=" * 80)
 print("STEP 8: COMPLETE EPISODE SUMMARY")
 print("=" * 80)
 
-print(f"\n✓ EPISODE COMPLETE")
+print(f"\n--> EPISODE COMPLETE")
 print(f"  - Final Episode Score: {observation.episode_score} / 1.0")
 print(f"\n  Score breakdown:")
 print(f"    - Classification: +{0.2} (CORRECT)")
@@ -196,13 +196,13 @@ print("=" * 80)
 observation = env.reset()
 wrong_ticket = env.current_ticket
 
-print(f"\n✓ New ticket:")
+print(f"\n--> New ticket:")
 print(f"  Message: {observation.message[:60]}...")
 print(f"  Ground truth type: {wrong_ticket['correct_type']}")
 
 # Deliberately give WRONG answer
 wrong_type = "billing" if wrong_ticket['correct_type'] != "billing" else "account"
-print(f"\n→ Taking WRONG action: Classify as '{wrong_type}' (should be '{wrong_ticket['correct_type']}')")
+print(f"\n--> Taking WRONG action: Classify as '{wrong_type}' (should be '{wrong_ticket['correct_type']}')")
 
 action = SupportAction(
     action_type="classify_issue",
@@ -210,45 +210,45 @@ action = SupportAction(
 )
 observation = env.step(action)
 
-print(f"\n✓ Wrong action executed")
+print(f"\n--> Wrong action executed")
 print(f"  - Classification reward: {observation.classification_reward}")
 print(f"  - Status: {observation.status}")
 print(f"  - Episode reward: {observation.episode_reward}")
-print(f"  → NOTICE: Reward is NEGATIVE for wrong answer! {observation.classification_reward}")
+print(f"  -> NOTICE: Reward is NEGATIVE for wrong answer! {observation.classification_reward}")
 
 print("\n" + "=" * 80)
 print("STEP 10: UNDERSTANDING WHAT YOU'RE TESTING")
 print("=" * 80)
 
 print("""
-✓ DATA LAYER:
+--> DATA LAYER:
   - 14 tickets with complete ground truth
   - Each ticket has: id, message, severity, correct_type, correct_category, 
     correct_solution, needs_escalation
   - Tickets are deterministic (same every time)
 
-✓ GRADING LAYER:
+--> GRADING LAYER:
   - Classification: ±0.2 (correct/wrong)
   - Solution: ±0.3 (correct/wrong)
   - Escalation: ±0.3 (correct/wrong)
   - Closure: +0.2 (always)
   - Total: 0.0-1.0 per episode
 
-✓ ENVIRONMENT LAYER:
+--> ENVIRONMENT LAYER:
   - Resets to get new ticket
   - Steps through 4 actions in sequence
   - Validates each action against ground truth
   - Returns reward immediately if wrong
   - Episode ends after 4 steps
 
-✓ AGENT LEARNING:
+--> AGENT LEARNING:
   - Agent sees: ticket message + severity (NOT ground truth)
   - Agent makes: 4 sequential decisions
   - Environment returns: reward + feedback
   - Agent learns: pattern matching through trial-and-error
   - Over episodes: scores should increase (learning!)
 
-✓ WHAT MAKES THIS VALID:
+--> WHAT MAKES THIS VALID:
   -  Deterministic grading (no randomness)
   -  Complete ground truth (all answers known)
   -  Fair rewards (normalized 0-1)
