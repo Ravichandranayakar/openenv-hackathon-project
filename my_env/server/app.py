@@ -12,7 +12,6 @@ from fastapi.responses import JSONResponse, Response
 from starlette.requests import Request
 import json
 import gradio as gr
-from typing import Tuple
 
 # Support both in-repo and standalone imports
 try:
@@ -140,162 +139,43 @@ async def root():
 # GRADIO UI INTERFACE
 # ============================================================================
 
-def reset_environment():
-    """Reset the environment and return initial state."""
-    observation = _environment.reset()
-    state = _environment.state
-    
-    message = f"Environment Reset\n"
-    message += f"Episode ID: {state.episode_id}\n"
-    message += f"Support Ticket: {observation.current_ticket['subject']}\n"
-    message += f"Ticket ID: {observation.current_ticket['id']}"
-    
-    return message, ""
 
-def get_current_state():
-    """Get the current environment state."""
-    state = _environment.state
-    message = f"Current State\n"
-    message += f"Episode ID: {state.episode_id}\n"
-    message += f"Step Count: {state.step_count}\n"
-    
-    if hasattr(_environment, 'current_ticket') and _environment.current_ticket:
-        message += f"\nTicket: {_environment.current_ticket['subject']}"
-    
-    return message
-
-def take_action(action_type, category_choice, solution_choice, escalate_choice):
-    """Execute an action in the environment."""
+# Create Gradio interface - simple and compatible with FastAPI mounting
+def get_status(action: str) -> str:
+    """Get environment status."""
     try:
-        # Build action based on step count
-        step = _environment.state.step_count
-        
-        if step == 0:
-            # Reset first
-            return "ERROR: Please click 'Reset Environment' first", ""
-        
-        action_dict = {"action_type": action_type}
-        
-        if step == 1:  # Classify
-            if not category_choice or category_choice == "Select...":
-                return "ERROR: Please select a classification", ""
-            action_dict["classification"] = category_choice
-        elif step == 2:  # Choose Solution
-            if not solution_choice or solution_choice == "Select...":
-                return "ERROR: Please select a solution", ""
-            action_dict["category"] = "general"  # Default category
-            action_dict["solution"] = solution_choice
-        elif step == 3:  # Escalation
-            action_dict["should_escalate"] = escalate_choice == "Yes, escalate"
-        elif step == 4:  # Close
-            pass
-        
-        # Execute action
-        observation = _environment.step(SupportAction(**action_dict))
-        
-        # Build response
-        result = f"Action Executed\n"
-        result += f"Step: {_environment.state.step_count}\n"
-        result += f"Reward: +{observation.reward}\n"
-        
-        if observation.done:
-            result += f"\nEpisode Complete!\n"
-            result += f"Final Score: {observation.episode_score}"
-        
-        return result, ""
+        state = _environment.state
+        if action == "Status":
+            result = "Customer Support Environment\n"
+            result += f"Status: Running\n"
+            result += f"Episode ID: {state.episode_id}\n"
+            result += f"Step Count: {state.step_count}\n"
+        elif action == "Reset":
+            obs = _environment.reset()
+            state = _environment.state
+            result = f"Environment Reset\n"
+            result += f"Episode ID: {state.episode_id}\n"
+            result += f"New Ticket: {obs.message}\n"
+        else:
+            result = "Available API Endpoints:\n"
+            result += "POST /reset - Start new episode\n"
+            result += "POST /step - Execute action\n"
+            result += "GET /state - Check state\n"
+            result += "GET /schema - Get action schema\n"
+            result += "GET /health - Health check\n"
+            result += "POST /tasks - Available tasks"
+        return result
     except Exception as e:
-        return f"ERROR: {str(e)}", ""
+        return f"Error: {str(e)}"
 
 
-# Create Gradio interface
-with gr.Blocks(title="Customer Support OpenEnv") as gradio_app:
-    gr.Markdown("# Customer Support OpenEnv Interface")
-    gr.Markdown("*Interactive demo for the customer support RL environment*")
-    
-    with gr.Row():
-        with gr.Column(scale=1):
-            gr.Markdown("### Control Panel")
-            reset_btn = gr.Button("Reset Environment", size="lg", variant="primary")
-            state_btn = gr.Button("Get Current State", size="lg", variant="secondary")
-        
-        with gr.Column(scale=1):
-            state_display = gr.Textbox(
-                label="State Monitor",
-                interactive=False,
-                lines=6,
-                value="Status: Ready. Click 'Reset Environment' to begin."
-            )
-    
-    gr.Markdown("### Take Action")
-    
-    with gr.Row():
-        action_type = gr.Dropdown(
-            choices=[
-                "classify_issue",
-                "choose_solution",
-                "escalate_decision",
-                "close_ticket"
-            ],
-            label="Action Type",
-            value="classify_issue"
-        )
-        category = gr.Dropdown(
-            choices=["Select...", "billing", "account", "bug", "feature"],
-            label="Classification / Category",
-            value="Select..."
-        )
-        solution = gr.Dropdown(
-            choices=["Select...", "refund", "reset_password", "apply_patch", "add_feature"],
-            label="Solution",
-            value="Select..."
-        )
-        escalate = gr.Radio(
-            choices=["No", "Yes, escalate"],
-            label="Escalate?",
-            value="No"
-        )
-    
-    action_btn = gr.Button("Execute Action", size="lg", variant="primary")
-    action_result = gr.Textbox(
-        label="Action Result",
-        interactive=False,
-        lines=5,
-        value="Results will appear here..."
-    )
-    action_history = gr.Textbox(
-        label="Action History",
-        interactive=False,
-        lines=4,
-        value="No actions yet"
-    )
-    
-    # Set up event handlers
-    @reset_btn.click(outputs=[state_display, action_history])
-    def on_reset():
-        return reset_environment()
-    
-    @state_btn.click(outputs=[state_display])
-    def on_state():
-        return get_current_state()
-    
-    @action_btn.click(inputs=[action_type, category, solution, escalate], outputs=[action_result, action_history])
-    def on_action(atype, cat, sol, esc):
-        return take_action(atype, cat, sol, esc)
-    
-    gr.Markdown("---")
-    gr.Markdown(
-        """
-        ## How to Use
-        
-        1. Reset: Click 'Reset Environment' to load a new support ticket
-        2. Classify: Select the issue classification and execute
-        3. Solve: Choose a solution for the category and execute
-        4. Escalate: Decide whether to escalate the ticket
-        5. Close: Close the ticket and complete the episode
-        
-        Earn rewards for correct decisions! Maximum score is 1.0 across 4 steps.
-        """
-    )
+gradio_app = gr.Interface(
+    fn=get_status,
+    inputs=gr.Dropdown(choices=["Status", "Reset", "API"], label="Select"),
+    outputs="text",
+    title="Customer Support OpenEnv Demo",
+    description="Use API endpoints for full interaction"
+)
 
 
 # Mount Gradio app at /web after all other routes
