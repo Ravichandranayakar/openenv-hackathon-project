@@ -134,6 +134,12 @@ async def root():
     return Response(content="", status_code=200)
 
 
+@app.get("/web", include_in_schema=False)
+async def web():
+    """Web path returns blank response (for HF Spaces)."""
+    return Response(content="", status_code=200)
+
+
 @app.post("/reset", tags=["Environment Control"])
 async def reset_endpoint():
     """Reset the environment and load a new support ticket."""
