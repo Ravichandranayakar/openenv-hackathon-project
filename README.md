@@ -1,8 +1,8 @@
 ---
 title: Customer Support OpenEnv Environment
 emoji:  🤖
-colorFrom: green
-colorTo: orange
+colorFrom: blue
+colorTo: green
 sdk: docker
 pinned: false
 app_port: 8000
