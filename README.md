@@ -128,13 +128,14 @@ while not obs.done:
 
 ### API Endpoints
 
-Endpoint | Method | Status | Notes
+Endpoint | Method | Status | Description
 ---------|--------|--------|-------
-/reset | POST | 200 | Initializes new environment episode
-/step | POST | 200 | Takes an action, format: {"action": {...}}
-/state | GET | 200 | Returns current episode state
+/reset | GET | 200 | Initialize new episode and load a random ticket
+/step | POST | 200 | Send action (classify, choose solution, escalate, close)
+/state | GET | 200 | Get current episode state
 /health | GET | 200 | Health check endpoint
-/schema | GET | 200 | Returns action and observation schemas
+/schema | GET | 200 | Get action and observation schemas
+/tasks | POST | 200 | List available task difficulties (Easy/Medium/Hard)
 
 ---
 
