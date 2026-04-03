@@ -183,43 +183,58 @@ def execute_step(action_type, classification, category, solution, should_escalat
 
 with gr.Blocks(title="Customer Support OpenEnv") as gradio_app:
     gr.Markdown("# Customer Support OpenEnv Playground")
-    
     with gr.Row():
-        with gr.Column():
-            gr.Markdown("## Control Panel")
-            reset_btn = gr.Button("Reset", size="lg")
-            state_btn = gr.Button("Get state", size="lg")
-            
+        # Left: Action Input
+        with gr.Column(scale=1):
+            gr.Markdown("### Take Action")
+            action_type = gr.Dropdown(
+                choices=["classify_issue", "choose_solution", "escalate_decision", "close_ticket"],
+                value="classify_issue",
+                label="Action Type"
+            )
+            classification = gr.Dropdown(
+                choices=["billing", "account", "bug", "feature"],
+                value="billing",
+                label="Classification"
+            )
+            category = gr.Textbox(label="Category", value="general")
+            solution = gr.Dropdown(
+                choices=["refund", "reset_password", "apply_patch", "add_feature"],
+                value="refund",
+                label="Solution"
+            )
+            should_escalate = gr.Dropdown(
+                choices=["false", "true"],
+                value="false",
+                label="Should Escalate"
+            )
+            escalate_reason = gr.Textbox(label="Escalate Reason", value="customer_request")
+            step_btn = gr.Button("Step", size="lg")
+            gr.Markdown("")
+            reset_btn = gr.Button("Reset Environment", size="sm")
+            state_btn = gr.Button("Get State", size="sm")
+        # Right: State/Result
+        with gr.Column(scale=2):
+            gr.Markdown("### State / Result")
             status_display = gr.Textbox(
                 label="Status",
                 interactive=False,
                 value="Click Reset to start"
             )
-        
-        with gr.Column():
-            gr.Markdown("## Raw JSON response")
             response_display = gr.Textbox(
-                label="Response",
+                label="Raw JSON Response",
                 interactive=False,
-                lines=10,
+                lines=12,
                 value=""
             )
-    
-    gr.Markdown("## Take Action")
-    
-    with gr.Row():
-        action_type = gr.Textbox(label="Action Type", value="classify_issue")
-        classification = gr.Textbox(label="Classification", value="billing")
-        category = gr.Textbox(label="Category", value="general")
-        solution = gr.Textbox(label="Solution", value="refund")
-        should_escalate = gr.Textbox(label="Should Escalate", value="false")
-        escalate_reason = gr.Textbox(label="Escalate Reason", value="customer_request")
-    
-    step_btn = gr.Button("Step", size="lg")
-    
+    # Button click handlers
     reset_btn.click(reset_env, outputs=[status_display, response_display])
     state_btn.click(get_env_state, outputs=[status_display, response_display])
-    step_btn.click(execute_step, inputs=[action_type, classification, category, solution, should_escalate, escalate_reason], outputs=[status_display, response_display])
+    step_btn.click(
+        execute_step,
+        inputs=[action_type, classification, category, solution, should_escalate, escalate_reason],
+        outputs=[status_display, response_display]
+    )
 
 
 # Mount Gradio app at /web after all other routes
