@@ -187,28 +187,13 @@ with gr.Blocks(title="Customer Support OpenEnv") as gradio_app:
         # Left: Action Input
         with gr.Column(scale=1):
             gr.Markdown("### Take Action")
-            action_type = gr.Dropdown(
-                choices=["classify_issue", "choose_solution", "escalate_decision", "close_ticket"],
-                value="classify_issue",
-                label="Action Type"
-            )
-            classification = gr.Dropdown(
-                choices=["billing", "account", "bug", "feature"],
-                value="billing",
-                label="Classification"
-            )
-            category = gr.Textbox(label="Category", value="general")
-            solution = gr.Dropdown(
-                choices=["refund", "reset_password", "apply_patch", "add_feature"],
-                value="refund",
-                label="Solution"
-            )
-            should_escalate = gr.Dropdown(
-                choices=["false", "true"],
-                value="false",
-                label="Should Escalate"
-            )
-            escalate_reason = gr.Textbox(label="Escalate Reason", value="customer_request")
+            action_type = gr.Textbox(label="Action Type", placeholder="Enter action type (e.g. classify_issue)")
+            classification = gr.Textbox(label="Classification", placeholder="Enter classification (e.g. billing)")
+            category = gr.Textbox(label="Category", placeholder="Enter category")
+            solution = gr.Textbox(label="Solution", placeholder="Enter solution")
+            should_escalate = gr.Textbox(label="Should Escalate", placeholder="true/false")
+            escalate_reason = gr.Textbox(label="Escalate Reason", placeholder="Enter escalate reason")
+            message = gr.Textbox(label="Message", placeholder="Enter message (if required)")
             step_btn = gr.Button("Step", size="lg")
             gr.Markdown("")
             reset_btn = gr.Button("Reset Environment", size="sm")
@@ -232,14 +217,15 @@ with gr.Blocks(title="Customer Support OpenEnv") as gradio_app:
     state_btn.click(get_env_state, outputs=[status_display, response_display])
     step_btn.click(
         execute_step,
-        inputs=[action_type, classification, category, solution, should_escalate, escalate_reason],
+        inputs=[action_type, classification, category, solution, should_escalate, escalate_reason, message],
         outputs=[status_display, response_display]
     )
 
 
 # Mount Gradio app at /web after all other routes
 gradio_app.queue()
-gr.mount_gradio_app(app, gradio_app, path="/web")
+# For HuggingFace Spaces, mount at root to avoid blank screen/redirect issues
+gr.mount_gradio_app(app, gradio_app, path="/")
 
 
 @app.post("/reset", tags=["Environment Control"])
