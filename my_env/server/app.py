@@ -181,9 +181,12 @@ def execute_step(action_type, classification, category, solution, should_escalat
 
 
 # --- Redesigned Gradio UI to match reference ---
+
+# --- Refactored Gradio UI: Project name at top, no duplicate state/status, Current State below State Observer, simple layout ---
 with gr.Blocks(title="Customer Support OpenEnv") as gradio_app:
+    gr.Markdown("# Customer Support OpenEnv Playground")
     with gr.Row():
-        # Left panel: Action input and state
+        # Left: Action input only
         with gr.Column(scale=1):
             gr.Markdown("#### Take Action")
             action_type = gr.Textbox(label="Action Type", placeholder="e.g. classify_issue")
@@ -193,61 +196,63 @@ with gr.Blocks(title="Customer Support OpenEnv") as gradio_app:
             should_escalate = gr.Textbox(label="Should Escalate", placeholder="true/false")
             escalate_reason = gr.Textbox(label="Escalate Reason", placeholder="Enter escalate reason")
             message = gr.Textbox(label="Message", placeholder="Enter message (optional)")
-            step_btn = gr.Button("Step", elem_id="step-btn", variant="primary")
+            step_btn = gr.Button("Step", variant="primary")
             with gr.Row():
-                reset_btn = gr.Button("Reset Environment", elem_id="reset-btn", variant="secondary")
-                state_btn = gr.Button("Get State", elem_id="state-btn", variant="secondary")
-            gr.Markdown("#### Current State")
-            status_display = gr.Textbox(label="Status", interactive=False, value="Click Reset to start")
-            state_box = gr.Textbox(label="Episode/Step Info", interactive=False, value="")
+                reset_btn = gr.Button("Reset Environment", variant="secondary")
+                state_btn = gr.Button("Get State", variant="secondary")
 
-        # Right panel: State observer
+        # Right: State observer and current state
         with gr.Column(scale=1):
             gr.Markdown("#### State Observer")
             observation_box = gr.Textbox(label="Current Observation", interactive=False, lines=6, value="")
             action_history_box = gr.Textbox(label="Action History", interactive=False, lines=6, value="")
             reward_box = gr.Textbox(label="Reward", interactive=False, value="")
+            gr.Markdown("#### Current State")
+            state_box = gr.Textbox(label="Status / Episode / Step", interactive=False, value="Click Reset to start")
 
     # Button click handlers
     def step_and_update(*args):
         status, response = execute_step(*args)
-        # Try to parse observation and reward for right panel
         try:
             obs = json.loads(response) if response else {}
             reward = obs.get("reward", "")
             observation = json.dumps(obs.get("observation", {}), indent=2) if obs.get("observation") else ""
             action_hist = json.dumps(args[:7], indent=2)
+            state_info = f"Episode: {obs.get('observation', {}).get('episode_id', '-')}, Step: {obs.get('observation', {}).get('step_count', '-')}\nReward: {reward}"
         except Exception:
             observation = ""
             action_hist = ""
             reward = ""
-        return status, response, observation, action_hist, str(reward)
+            state_info = status
+        return observation, action_hist, str(reward), state_info
 
     def reset_and_update():
         status, response = reset_env()
         try:
             obs = json.loads(response) if response else {}
             observation = json.dumps(obs, indent=2)
+            state_info = f"Episode: {obs.get('episode_id', '-')}, Step: {obs.get('step_count', '-')}"
         except Exception:
             observation = ""
-        return status, "", observation, "", ""
+            state_info = status
+        return observation, "", "", state_info
 
     def state_and_update():
         status, response = get_env_state()
         try:
             obs = json.loads(response) if response else {}
-            state_info = json.dumps(obs, indent=2)
+            state_info = f"Episode: {obs.get('episode_id', '-')}, Step: {obs.get('step_count', '-')}"
         except Exception:
-            state_info = ""
-        return status, state_info
+            state_info = status
+        return state_info
 
     step_btn.click(
         step_and_update,
         inputs=[action_type, classification, category, solution, should_escalate, escalate_reason, message],
-        outputs=[status_display, state_box, observation_box, action_history_box, reward_box]
+        outputs=[observation_box, action_history_box, reward_box, state_box]
     )
-    reset_btn.click(reset_and_update, outputs=[status_display, state_box, observation_box, action_history_box, reward_box])
-    state_btn.click(state_and_update, outputs=[status_display, state_box])
+    reset_btn.click(reset_and_update, outputs=[observation_box, action_history_box, reward_box, state_box])
+    state_btn.click(state_and_update, outputs=[state_box])
 
 
 # Mount Gradio app at /web after all other routes
