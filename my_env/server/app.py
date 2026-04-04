@@ -35,7 +35,47 @@ app = create_app(
     max_concurrent_envs=1,
 )
 
-# IMPORTANT: Add CORS and bypass authentication for local Gradio UI requests
+# Customize Swagger UI with project metadata
+app.title = "Customer Support OpenEnv"
+app.description = """
+🤖 **Customer Support Environment** – An AI training environment for handling support tickets.
+
+Agents learn to:
+- **Classify issues** (billing, account, bug, feature)
+- **Choose solutions** (pick the right action for each category)
+- **Make escalation decisions** (when to escalate vs. close)
+- **Close tickets** (finalize with proper rewards)
+
+## How to Use
+1. Call `POST /reset` to start a new episode and load a random support ticket
+2. Call `POST /step` repeatedly with your agent's actions
+3. Episode ends when the observation returns `done: true`
+4. Call `GET /state` anytime to check current state
+
+## Reward Structure
+
+| Step                | Max Reward |
+|---------------------|------------|
+| 1. Classify Issue   | 0.2        |
+| 2. Choose Solution  | 0.3        |
+| 3. Escalation       | 0.3        |
+| 4. Close Ticket     | 0.2        |
+| **Total**           | **1.0**    |
+
+## Action Format for `/step`
+```json
+{
+  "action": {
+    "action_type": "classify_issue|choose_solution|escalate_decision|close_ticket",
+    "classification": "billing|account|bug|feature",
+    "category": "category_name",
+    "solution": "solution_name",
+    "should_escalate": true
+  }
+}
+```
+"""
+app.version = "1.0.0"
 from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
@@ -49,6 +89,7 @@ app.add_middleware(
 
 # Build custom Gradio UI
 gradio_app = build_gradio_app(
+    app,
     web_manager=None,
     action_fields=[],
     metadata=None,
