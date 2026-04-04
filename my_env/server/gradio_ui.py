@@ -264,7 +264,7 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
 
     with gr.Blocks(css=custom_css, title="Customer Support OpenEnv") as demo:
         gr.Markdown("""
-        # Customer Support Command Center
+        # 🤖 Customer Support Command Center
         Manage support tickets. Classify. Solve. Escalate. Close.
         """)
         
@@ -275,7 +275,6 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
             with gr.Row():
                 action_type = gr.Dropdown(
                     choices=["classify_issue", "choose_solution", "escalate_decision", "close_ticket"],
-                    value="classify_issue",
                     label="Action Type",
                     info="Step 1→2→3→4",
                     scale=3
