@@ -64,5 +64,6 @@ test_endpoints.py
 .env
 debug_env.py
 test_ticket_load.py
-
+check_ui_root.py
+test_gradio_paths.py
 test_flow.py

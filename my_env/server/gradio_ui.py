@@ -1,43 +1,66 @@
 """
 Gradio UI builder for Customer Support OpenEnv.
+Provides a clean web interface for the REST API endpoints.
 """
 import gradio as gr
 import json
+import requests
+import os
 
 def build_gradio_app(web_manager, action_fields, metadata, is_chat_env, title, quick_start_md):
     """Builds the Gradio UI for the Customer Support environment."""
-    del action_fields, metadata, is_chat_env, quick_start_md
-
+    del web_manager, action_fields, metadata, is_chat_env, quick_start_md
+    
+    # Determine API base URL based on environment
+    api_base = os.environ.get("API_BASE_URL", "http://localhost:8000")
+    
     def step_action(action_type, classification, category, solution, should_escalate, escalate_reason, message):
+        """Execute a step action."""
         action = {
-            "action_type": action_type or "classify_issue",
-            "classification": classification or "billing",
-            "category": category or "general",
-            "solution": solution or "refund",
-            "should_escalate": should_escalate.lower() == "true",
-            "escalation_reason": escalate_reason or "customer_request"
+            "action": {
+                "action_type": action_type or "classify_issue",
+                "classification": classification or "billing",
+                "category": category or "general",
+                "solution": solution or "refund",
+                "should_escalate": should_escalate.strip().lower() == "true" if should_escalate.strip() else False,
+                "escalation_reason": escalate_reason or "customer_request"
+            }
         }
         if message:
-            action["message"] = message
+            action["action"]["message"] = message
         try:
-            data = web_manager.step_environment({"action": action})
-            return json.dumps(data, indent=2), "Step executed."
+            r = requests.post(f"{api_base}/step", json=action, timeout=10)
+            if r.status_code == 200:
+                data = r.json()
+                return json.dumps(data, indent=2), "✓ Step executed successfully."
+            else:
+                return "", f"✗ Error: {r.status_code} - {r.text[:200]}"
         except Exception as e:
-            return "", f"Error: {e}"
+            return "", f"✗ Error: {e}"
 
     def reset_env():
+        """Reset the environment."""
         try:
-            data = web_manager.reset_environment({})
-            return json.dumps(data, indent=2), "Environment reset."
+            r = requests.post(f"{api_base}/reset", json={}, timeout=10)
+            if r.status_code == 200:
+                data = r.json()
+                return json.dumps(data, indent=2), "✓ Environment reset successfully."
+            else:
+                return "", f"✗ Error: {r.status_code}"
         except Exception as e:
-            return "", f"Error: {e}"
+            return "", f"✗ Error: {e}"
 
     def get_state():
+        """Get current environment state."""
         try:
-            data = web_manager.get_state()
-            return json.dumps(data, indent=2), "State fetched."
+            r = requests.get(f"{api_base}/state", timeout=10)
+            if r.status_code == 200:
+                data = r.json()
+                return json.dumps(data, indent=2), "✓ State retrieved."
+            else:
+                return "", f"✗ Error: {r.status_code}"
         except Exception as e:
-            return "", f"Error: {e}"
+            return "", f"✗ Error: {e}"
 
     with gr.Blocks(title=title) as demo:
         gr.Markdown("# Customer Support OpenEnv Playground")

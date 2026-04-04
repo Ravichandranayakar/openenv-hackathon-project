@@ -57,6 +57,8 @@ test_endpoints.py
 debug_env.py
 test_flow.py
 test_ticket_load.py
+check_ui_root.py
+test_gradio_paths.py
 
 # Node modules (if any)
 node_modules/
