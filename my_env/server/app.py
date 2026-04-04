@@ -1,6 +1,11 @@
 """
 FastAPI application for the Customer Support OpenEnv Environment.
-Uses OpenEnv create_app for stable REST API + manual Gradio mounting for visible UI.
+Uses OpenEnv create_app for stable REST API + mount custom Gradio UI at root.
+
+Key Design:
+1. create_app() builds the FastAPI app with /reset, /step, /state, /health, /schema endpoints
+2. Custom Gradio UI is mounted at / to completely replace OpenEnv's default UI
+3. Gradio UI makes HTTP calls to the API endpoints internally
 """
 
 try:
@@ -30,11 +35,19 @@ app = create_app(
     max_concurrent_envs=1,
 )
 
+# IMPORTANT: Add CORS and bypass authentication for local Gradio UI requests
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins for Spaces/demo
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
-
-
-# Build Gradio UI and mount at /web path
+# Build custom Gradio UI
 gradio_app = build_gradio_app(
     web_manager=None,
     action_fields=[],
@@ -44,15 +57,18 @@ gradio_app = build_gradio_app(
     quick_start_md="",
 )
 
-gr.mount_gradio_app(app, gradio_app, path="/web")
+# CRITICAL FIX: Mount Gradio at root AFTER all API routes are already registered
+# This ensures /reset, /step, /state are handled by FastAPI BEFORE Gradio intercepts them
+# The key is that FastAPI routes take precedence over the Gradio ASGI mount
+gr.mount_gradio_app(app, gradio_app, path="/")
 
-# Homepage redirect to Gradio UI
-from fastapi.responses import RedirectResponse
+# Add a simple health check to verify the API is accessible
+@app.get("/api/status", include_in_schema=False)
+async def api_status():
+    """Verify API is accessible separate from Gradio."""
+    return {"status": "ok"}
 
-@app.get("/", include_in_schema=False)
-async def root():
-    """Redirect to the Gradio UI."""
-    return RedirectResponse(url="/web/", status_code=303)
+
 
 
 def main(host: str = "0.0.0.0", port: int = 8000):
