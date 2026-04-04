@@ -8,16 +8,37 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
     del web_manager, action_fields, metadata, is_chat_env, quick_start_md
 
     def step_action(action_type, classification, category, solution, should_escalate, escalate_reason, history_state):
-        action_payload = {
-            "action": {
-                "action_type": action_type,
-                "classification": classification if classification else None,
-                "category": category if category else None,
-                "solution": solution if solution else None,
-                "should_escalate": should_escalate.lower() == "true" if should_escalate else None,
-                "escalate_reason": escalate_reason if escalate_reason else None
-            }
-        }
+        # Build action payload based on action_type
+        # Only include fields relevant to the current step
+        action_dict = {"action_type": action_type}
+        
+        if action_type == "classify_issue":
+            if not classification:
+                return ("", "<div style='background:#fee; color:#c33; padding:10px; border-radius:4px;'>❌ Error: Classification required for classify_issue</div>", 
+                        render_action_history(history_state), "Missing classification", history_state, "")
+            action_dict["classification"] = classification
+        
+        elif action_type == "choose_solution":
+            if not category or not solution:
+                return ("", "<div style='background:#fee; color:#c33; padding:10px; border-radius:4px;'>❌ Error: Category and Solution required for choose_solution</div>", 
+                        render_action_history(history_state), "Missing category or solution", history_state, "")
+            action_dict["category"] = category
+            action_dict["solution"] = solution
+        
+        elif action_type == "escalate_decision":
+            if should_escalate is None or should_escalate.strip() == "":
+                return ("", "<div style='background:#fee; color:#c33; padding:10px; border-radius:4px;'>❌ Error: Should Escalate required (true/false)</div>", 
+                        render_action_history(history_state), "Missing escalation decision", history_state, "")
+            action_dict["should_escalate"] = should_escalate.lower() == "true"
+            if escalate_reason and escalate_reason.strip():
+                action_dict["escalate_reason"] = escalate_reason
+        
+        elif action_type == "close_ticket":
+            # close_ticket only needs action_type
+            pass
+        
+        action_payload = {"action": action_dict}
+        
         try:
             r = client.post("/step", json=action_payload)
             if r.status_code == 200:
@@ -44,9 +65,9 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
                     json.dumps(data, indent=2)
                 )
             else:
-                error_msg = f"Error {r.status_code}"
-                return ("", "<div style='background:#fee; color:#c33; padding:10px; border-radius:4px;'>❌ Error: Step failed</div>", 
-                        render_action_history(history_state), error_msg, history_state, f"Error: {r.status_code}")
+                error_msg = f"Error {r.status_code}: {r.text[:200]}"
+                return ("", f"<div style='background:#fee; color:#c33; padding:10px; border-radius:4px;'>❌ Backend Error: Check Raw JSON</div>", 
+                        render_action_history(history_state), error_msg, history_state, f"Error {r.status_code}")
         except Exception as e:
             return ("", f"<div style='background:#fee; color:#c33; padding:10px; border-radius:4px;'>❌ Error: {str(e)}</div>", 
                     render_action_history(history_state), f"Exception: {str(e)}", history_state, str(e))
@@ -249,22 +270,24 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
         
         # ======== ZONE 1: INPUT ========
         with gr.Group():
-            gr.Markdown("### Action Input")
+            gr.Markdown("### Step-by-Step Action Input")
+            gr.Markdown("<div style='background: #1a3a3a; padding: 12px; border-radius: 4px; font-size: 12px; color: #aaa; margin-bottom: 15px;'><b>📝 Instructions:</b> Select action type → Fill in required field(s) → Click EXECUTE STEP → Repeat for next step</div>")
             with gr.Row():
                 action_type = gr.Dropdown(
                     choices=["classify_issue", "choose_solution", "escalate_decision", "close_ticket"],
                     value="classify_issue",
                     label="Action Type",
-                    scale=1
+                    info="Step 1→2→3→4",
+                    scale=3
                 )
             with gr.Row():
-                classification = gr.Textbox(label="Classification (Step 1)", placeholder="billing / account / bug / feature", scale=1)
-                category = gr.Textbox(label="Category (Step 2)", placeholder="e.g., duplicate_charge", scale=1)
+                classification = gr.Textbox(label="Classification (Step 1)", placeholder="billing, account, bug, feature", scale=1)
+                category = gr.Textbox(label="Category (Step 2)", placeholder="duplicate_charge, password, api, etc.", scale=1)
             with gr.Row():
-                solution = gr.Textbox(label="Solution (Step 2)", placeholder="e.g., refund_duplicate_charge", scale=2)
+                solution = gr.Textbox(label="Solution (Step 2)", placeholder="refund_duplicate_charge, reset_password_link, etc.", scale=2)
             with gr.Row():
-                should_escalate = gr.Textbox(label="Should Escalate? (Step 3)", placeholder="true / false", scale=1)
-                escalate_reason = gr.Textbox(label="Escalate Reason (Optional)", placeholder="requires_manager / vip_customer", scale=1)
+                should_escalate = gr.Textbox(label="Escalate? (Step 3)", placeholder="true or false", scale=1)
+                escalate_reason = gr.Textbox(label="Reason (if true)", placeholder="fraud_suspected, security_breach, etc.", scale=1)
             
             with gr.Row():
                 step_btn = gr.Button("EXECUTE STEP", variant="primary", scale=2)

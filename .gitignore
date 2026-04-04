@@ -70,3 +70,4 @@ check_ui_root.py
 test_gradio_paths.py
 TEST_SCENARIOS_COMPLETE.md
 TEST_SCENARIOS_MERGED.md
+UI_STEP_BY_STEP_GUIDE.md
