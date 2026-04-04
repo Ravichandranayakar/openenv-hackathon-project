@@ -12,14 +12,11 @@ def build_gradio_app(web_manager, action_fields, metadata, is_chat_env, title, q
     del web_manager, action_fields, metadata, is_chat_env, quick_start_md
     
     # Determine API base URL
-    # On Spaces: api_base should be empty ("") for relative requests
-    # The key is using the full window location for JSONRPC calls
+    # The requests library requires absolute URLs, so we construct the full URL
+    # This ensures the Gradio backend can call the FastAPI endpoints directly
     import os
-    api_base = os.environ.get("API_BASE_URL", "")
-    
-    # For Spaces compatibility: use /api/health to test if the API is accessible
-    # This ensures we're reaching the FastAPI backend, not Gradio's internal routing
-    api_prefix = ""  # Empty = relative requests to same origin
+    # Try environment override first, fallback to localhost
+    api_base = os.environ.get("API_BASE_URL") or "http://127.0.0.1:8000"
     
     def step_action(action_type, classification, category, solution, should_escalate, escalate_reason, message):
         """Execute a step action."""
