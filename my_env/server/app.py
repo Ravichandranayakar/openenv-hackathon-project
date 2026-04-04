@@ -30,7 +30,8 @@ app = create_app(
     max_concurrent_envs=1,
 )
 
-# Build Gradio UI and mount at /web path
+
+# Build Gradio UI and mount at root path
 gradio_app = build_gradio_app(
     web_manager=None,
     action_fields=[],
@@ -40,14 +41,7 @@ gradio_app = build_gradio_app(
     quick_start_md="",
 )
 
-gr.mount_gradio_app(app, gradio_app, path="/web")
-
-# Redirect root path to /web for Hugging Face Spaces
-from fastapi.responses import RedirectResponse
-
-@app.get("/", include_in_schema=False)
-async def root():
-    return RedirectResponse(url="/web/")
+gr.mount_gradio_app(app, gradio_app, path="/")
 
 
 def main(host: str = "0.0.0.0", port: int = 8000):
