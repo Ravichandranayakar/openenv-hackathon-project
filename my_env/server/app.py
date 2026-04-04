@@ -221,8 +221,13 @@ with gr.Blocks(title="Customer Support OpenEnv") as gradio_app:
 
 # Mount Gradio app at /web after all other routes
 gradio_app.queue()
-# For HuggingFace Spaces, mount at root to avoid blank screen/redirect issues
-gr.mount_gradio_app(app, gradio_app, path="/")
+# For HuggingFace Spaces, mount at /web and redirect / to /web
+gr.mount_gradio_app(app, gradio_app, path="/web")
+
+from fastapi.responses import RedirectResponse
+@app.get("/", include_in_schema=False)
+async def root():
+    return RedirectResponse(url="/web")
 
 
 @app.post("/reset", tags=["Environment Control"])
