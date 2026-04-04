@@ -74,11 +74,11 @@ ENV PYTHONPATH="/app/env:$PYTHONPATH"
 # Set working directory for the app
 WORKDIR /app/env
 
-# Health check (use port 7860 for Spaces)
+# Health check (use port 8000 for local/dev/Spaces)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:7860/health || exit 1
+    CMD curl -f http://localhost:8000/health || exit 1
 
-# Expose the port expected by Hugging Face Spaces
-EXPOSE 7860
-# Run the FastAPI server on port 7860 for Spaces compatibility
-CMD ["uvicorn", "my_env.server.app:app", "--host", "0.0.0.0", "--port", "7860"]
+# Expose the default port (8000)
+EXPOSE 8000
+# Run the FastAPI server on port 8000
+CMD ["uvicorn", "my_env.server.app:app", "--host", "0.0.0.0", "--port", "8000"]
