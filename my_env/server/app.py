@@ -28,7 +28,6 @@ app = create_app(
     SupportObservation,
     env_name="customer_support_env",
     max_concurrent_envs=1,
-    api_key=None,  # Disable authentication for public API access
 )
 
 
