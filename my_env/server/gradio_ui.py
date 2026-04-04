@@ -11,8 +11,8 @@ def build_gradio_app(web_manager, action_fields, metadata, is_chat_env, title, q
     """Builds the Gradio UI for the Customer Support environment."""
     del web_manager, action_fields, metadata, is_chat_env, quick_start_md
     
-    # Determine API base URL based on environment
-    api_base = os.environ.get("API_BASE_URL", "http://localhost:8000")
+    # Determine API base URL based on environment (use '' for Spaces)
+    api_base = os.environ.get("API_BASE_URL", "")
     
     def step_action(action_type, classification, category, solution, should_escalate, escalate_reason, message):
         """Execute a step action."""
