@@ -41,7 +41,7 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
                     render_action_history(history_state),
                     render_formatted_feedback(obs),
                     history_state,
-                    json.dumps(obs, indent=2)
+                    json.dumps(data, indent=2)
                 )
             else:
                 error_msg = f"Error {r.status_code}"
@@ -63,7 +63,7 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
                     render_action_history([]),
                     render_formatted_feedback(obs),
                     [],
-                    json.dumps(obs, indent=2)
+                    json.dumps(data, indent=2)
                 )
             else:
                 return ("", "<div style='background:#fee; color:#c33; padding:10px;'>❌ Reset failed</div>", 
@@ -85,7 +85,7 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
                     render_action_history(history_state),
                     render_formatted_feedback(obs),
                     history_state,
-                    json.dumps(obs, indent=2)
+                    json.dumps(data, indent=2)
                 )
             else:
                 return ("", "", "", "Error retrieving state", history_state, "")
@@ -97,7 +97,7 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
         if not obs:
             obs = {}
         
-        step_reward = current_reward or 0.0
+        last_action_reward = current_reward or 0.0
         total_reward = obs.get("episode_reward", 0.0) or 0.0
         score = obs.get("episode_score", 0.0) or 0.0
         status = obs.get("status", "unknown").upper()
@@ -108,8 +108,8 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
         html = f"""
         <div style='display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0; background: none; border: none;'>
             <div style='background: #0d6efd; color: white; padding: 20px; border-radius: 0; text-align: center; border: none;'>
-                <div style='font-size: 12px; font-weight: 600;'>Step Reward</div>
-                <div style='font-size: 28px; font-weight: 700; margin-top: 8px;'>{step_reward:+.2f}</div>
+                <div style='font-size: 12px; font-weight: 600;'>Last Action Reward</div>
+                <div style='font-size: 28px; font-weight: 700; margin-top: 8px;'>{last_action_reward:+.2f}</div>
             </div>
             <div style='background: #fd7e14; color: white; padding: 20px; border-radius: 0; text-align: center; border: none;'>
                 <div style='font-size: 12px; font-weight: 600;'>Total Reward</div>
@@ -130,29 +130,25 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
     def render_ticket_view(obs):
         """Render current ticket with metadata tags and message"""
         if not obs:
-            return "<div style='color: #666; padding: 30px; text-align: center; background: #f8f9fa; border-radius: 4px;'>Reset to load ticket</div>"
+            return "<div style='color: #bbb; padding: 30px; text-align: center; background: #23232b; border-radius: 4px;'>Reset to load ticket</div>"
         
         message = obs.get("message", "No message")
         severity = obs.get("severity", "unknown").upper()
         ticket_id = obs.get("ticket_id", "—")
-        step_count = obs.get("step_count", 0)
         
         html = f"""
-        <div style='background: #f8f9fa; padding: 20px; border-radius: 4px;'>
+        <div style='background: #23232b; padding: 20px; border-radius: 4px;'>
             <div style='margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;'>
-                <span style='background: #e9ecef; color: #333; padding: 6px 12px; border-radius: 3px; font-size: 12px;'>
+                <span style='background: #353542; color: #eee; padding: 6px 12px; border-radius: 3px; font-size: 12px;'>
                     Severity: {severity}
                 </span>
-                <span style='background: #e9ecef; color: #333; padding: 6px 12px; border-radius: 3px; font-size: 12px;'>
+                <span style='background: #353542; color: #eee; padding: 6px 12px; border-radius: 3px; font-size: 12px;'>
                     ID: {ticket_id}
                 </span>
-                <span style='background: #e9ecef; color: #333; padding: 6px 12px; border-radius: 3px; font-size: 12px;'>
-                    Step: {step_count}
-                </span>
             </div>
-            <div style='background: white; padding: 15px; border-radius: 4px;'>
-                <div style='font-size: 13px; color: #666; font-weight: 600; margin-bottom: 8px;'>Customer Message</div>
-                <div style='font-size: 15px; color: #333; line-height: 1.6;'>{message}</div>
+            <div style='background: #181820; padding: 15px; border-radius: 4px;'>
+                <div style='font-size: 13px; color: #bbb; font-weight: 600; margin-bottom: 8px;'>Customer Message</div>
+                <div style='font-size: 15px; color: #eee; line-height: 1.6;'>{message}</div>
             </div>
         </div>
         """
@@ -166,9 +162,9 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
         resolution = obs.get("resolution_message", "")
         
         html = f"""
-        <div style='background: #f8f9fa; padding: 15px; border-radius: 4px; margin-top: 15px;'>
-            <div style='font-size: 13px; color: #666; font-weight: 600; margin-bottom: 8px;'>System Feedback</div>
-            <div style='font-size: 14px; color: #333; line-height: 1.6;'>{resolution if resolution else "Waiting for action..."}</div>
+        <div style='background: #23232b; padding: 15px; border-radius: 4px; margin-top: 15px;'>
+            <div style='font-size: 13px; color: #bbb; font-weight: 600; margin-bottom: 8px;'>System Feedback</div>
+            <div style='font-size: 14px; color: #eee; line-height: 1.6;'>{resolution if resolution else "Waiting for action..."}</div>
         </div>
         """
         return html
@@ -176,7 +172,7 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
     def render_action_history(history_state):
         """Render timeline of all actions"""
         if not history_state:
-            return "<div style='color: #999; padding: 20px; text-align: center; font-size: 13px; background: #f8f9fa; border-radius: 4px;'>No actions yet. Click EXECUTE STEP to start.</div>"
+            return "<div style='color: #888; padding: 20px; text-align: center; font-size: 13px; background: #23232b; border-radius: 4px;'>No actions yet. Click EXECUTE STEP to start.</div>"
         
         html = "<div style='font-size: 13px; line-height: 2;'>"
         for h in history_state:
@@ -184,12 +180,11 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
             action = h.get("action_type", "unknown")
             reward = h.get("reward", 0.0)
             status = h.get("status", "unknown")
-            
             html += f"""
-            <div style='padding: 10px; background: #f8f9fa; border-radius: 3px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;'>
-                <span style='flex: 1;'><b>Step {step_num}:</b> {action}</span>
-                <span style='font-weight: 700; margin-right: 15px;'>{reward:+.2f}</span>
-                <span style='color: #666; font-size: 12px; min-width: 80px;'>{status}</span>
+            <div style='padding: 10px; background: #181820; border-radius: 3px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;'>
+                <span style='flex: 1; color: #eee;'><b>Step {step_num}:</b> {action}</span>
+                <span style='font-weight: 700; margin-right: 15px; color: #eee;'>{reward:+.2f}</span>
+                <span style='color: #bbb; font-size: 12px; min-width: 80px;'>{status}</span>
             </div>
             """
         html += "</div>"
@@ -197,37 +192,37 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
 
     # CSS for simple clean styling
     custom_css = """
-    body { 
-        background: #fff; 
-        color: #333; 
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+    body {
+        background: #181820;
+        color: #eee;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
-    .gr-textbox input, .gr-textbox textarea { 
-        background: #fff; 
-        border: 1px solid #ddd; 
-        color: #333; 
-        padding: 10px 12px; 
+    .gr-textbox input, .gr-textbox textarea {
+        background: #23232b;
+        border: 1px solid #353542;
+        color: #eee;
+        padding: 10px 12px;
         font-size: 14px;
     }
-    .gr-button { 
-        font-weight: 600; 
-        border-radius: 4px; 
-        padding: 12px 20px; 
+    .gr-button {
+        font-weight: 600;
+        border-radius: 4px;
+        padding: 12px 20px;
         font-size: 14px;
     }
-    .gr-button-primary { 
+    .gr-button-primary {
         background: #0d6efd !important;
         border: none;
     }
     .gr-group {
         border: none;
-        background: #f8f9fa;
+        background: #23232b;
         border-radius: 4px;
         padding: 20px;
         margin-bottom: 20px;
     }
     .gr-form {
-        background: #f8f9fa;
+        background: #23232b;
         border: none;
         border-radius: 0;
         padding: 0;
@@ -237,12 +232,12 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
         margin-bottom: 15px;
         font-size: 16px;
         font-weight: 600;
-        color: #333;
+        color: #eee;
     }
     .gr-markdown h1 {
         margin-bottom: 10px;
         font-size: 24px;
-        color: #333;
+        color: #eee;
     }
     """
 
@@ -256,7 +251,12 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
         with gr.Group():
             gr.Markdown("### Action Input")
             with gr.Row():
-                action_type = gr.Textbox(label="Action Type", placeholder="classify_issue / choose_solution / escalate_decision / close_ticket", scale=2)
+                action_type = gr.Dropdown(
+                    choices=["classify_issue", "choose_solution", "escalate_decision", "close_ticket"],
+                    value="classify_issue",
+                    label="Action Type",
+                    scale=1
+                )
             with gr.Row():
                 classification = gr.Textbox(label="Classification (Step 1)", placeholder="billing / account / bug / feature", scale=1)
                 category = gr.Textbox(label="Category (Step 2)", placeholder="e.g., duplicate_charge", scale=1)
@@ -267,7 +267,7 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
                 escalate_reason = gr.Textbox(label="Escalate Reason (Optional)", placeholder="requires_manager / vip_customer", scale=1)
             
             with gr.Row():
-                step_btn = gr.Button("EXECUTE STEP", variant="primary", scale=1)
+                step_btn = gr.Button("EXECUTE STEP", variant="primary", scale=2)
                 reset_btn = gr.Button("RESET", scale=1)
                 state_btn = gr.Button("GET STATE", scale=1)
         
