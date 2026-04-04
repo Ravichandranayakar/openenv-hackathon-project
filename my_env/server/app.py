@@ -33,7 +33,8 @@ app = create_app(
 
 
 
-# Build Gradio UI and mount at root path (after all API endpoints)
+
+# Build Gradio UI and mount at /web path
 gradio_app = build_gradio_app(
     web_manager=None,
     action_fields=[],
@@ -43,7 +44,15 @@ gradio_app = build_gradio_app(
     quick_start_md="",
 )
 
-gr.mount_gradio_app(app, gradio_app, path="/")
+gr.mount_gradio_app(app, gradio_app, path="/web")
+
+# Homepage redirect to Gradio UI
+from fastapi.responses import RedirectResponse
+
+@app.get("/", include_in_schema=False)
+async def root():
+    """Redirect to the Gradio UI."""
+    return RedirectResponse(url="/web/", status_code=303)
 
 
 def main(host: str = "0.0.0.0", port: int = 8000):
