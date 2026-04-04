@@ -60,6 +60,9 @@ test_ticket_load.py
 check_ui_root.py
 test_gradio_paths.py
 
+TEST_SCENARIOS_COMPLETE.md
+TEST_SCENARIOS_MERGED.md
+
 # Node modules (if any)
 node_modules/
 
