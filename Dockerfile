@@ -74,9 +74,9 @@ ENV PYTHONPATH="/app/env:$PYTHONPATH"
 # Set working directory for the app
 WORKDIR /app/env
 
-# Health check
+# Health check (use port 7860 for Spaces)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:7860/health || exit 1
 
 # Expose the port expected by Hugging Face Spaces
 EXPOSE 7860
