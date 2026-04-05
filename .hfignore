@@ -59,6 +59,7 @@ test_flow.py
 test_ticket_load.py
 check_ui_root.py
 test_gradio_paths.py
+test_endpoints_verification.py
 
 TEST_SCENARIOS_COMPLETE.md
 TEST_SCENARIOS_MERGED.md

@@ -70,3 +70,4 @@ test_flow.py
 TEST_SCENARIOS_COMPLETE.md
 TEST_SCENARIOS_MERGED.md
 UI_STEP_BY_STEP_GUIDE.md
+test_endpoints_verification.py

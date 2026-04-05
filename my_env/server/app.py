@@ -16,6 +16,8 @@ except ImportError as e:
     ) from e
 
 import gradio as gr
+from fastapi import FastAPI, Body
+from typing import Dict, Any
 
 try:
     from ..models import SupportAction, SupportObservation
@@ -37,32 +39,35 @@ app = create_app(
 
 # Customize Swagger UI with project metadata
 app.title = "Customer Support OpenEnv"
-app.description = """
-🤖 **Customer Support Environment** – An AI training environment for handling support tickets.
+app.version = "1.0.0"
+app.description = """🤖 Customer Support Environment – An AI training environment for handling support tickets.
 
 Agents learn to:
-- **Classify issues** (billing, account, bug, feature)
-- **Choose solutions** (pick the right action for each category)
-- **Make escalation decisions** (when to escalate vs. close)
-- **Close tickets** (finalize with proper rewards)
+
+- Classify issues (billing, account, bug, feature)
+- Choose solutions (pick the right action for each category)
+- Make escalation decisions (when to escalate vs. close)
+- Close tickets (finalize with proper rewards)
 
 ## How to Use
-1. Call `POST /reset` to start a new episode and load a random support ticket
-2. Call `POST /step` repeatedly with your agent's actions
-3. Episode ends when the observation returns `done: true`
-4. Call `GET /state` anytime to check current state
+
+- Call POST /reset to start a new episode and load a random support ticket
+- Call POST /step repeatedly with your agent's actions
+- Episode ends when the observation returns done: true
+- Call GET /state anytime to check current state
 
 ## Reward Structure
 
-| Step                | Max Reward |
-|---------------------|------------|
-| 1. Classify Issue   | 0.2        |
-| 2. Choose Solution  | 0.3        |
-| 3. Escalation       | 0.3        |
-| 4. Close Ticket     | 0.2        |
-| **Total**           | **1.0**    |
+| Step | Max Reward |
+|------|-----------|
+| 1. Classify Issue | 0.2 |
+| 2. Choose Solution | 0.3 |
+| 3. Escalation | 0.3 |
+| 4. Close Ticket | 0.2 |
+| **Total** | **1.0** |
 
-## Action Format for `/step`
+## Action Format for /step
+
 ```json
 {
   "action": {
@@ -74,8 +79,112 @@ Agents learn to:
   }
 }
 ```
-"""
-app.version = "1.0.0"
+
+**OpenEnv Team** - [Website](https://openenv.dev)  
+**License:** BSD-3-Clause"""
+
+# ============================================================
+# CRITICAL FIX: Override OpenEnv routes with singleton pattern
+# ============================================================
+
+# Remove default OpenEnv routes to replace with singleton versions
+routes_to_remove = [r for r in app.routes if hasattr(r, 'path') and r.path in ['/reset', '/step', '/state']]
+for route in routes_to_remove:
+    app.routes.remove(route)
+
+# Singleton environment instance
+_env_instance = None
+
+def get_environment() -> CustomerSupportEnvironment:
+    """Get or create singleton environment."""
+    global _env_instance
+    if _env_instance is None:
+        _env_instance = CustomerSupportEnvironment()
+    return _env_instance
+
+# Add custom routes that use singleton
+@app.post("/reset")
+async def reset_endpoint():
+    """Reset environment and load a new ticket."""
+    env = get_environment()
+    obs = env.reset()
+    return {
+        "observation": obs.__dict__,
+        "reward": 0.0,
+        "done": False
+    }
+
+@app.post("/step")
+async def step_endpoint(request_body: Dict[str, Any] = Body(..., embed=False)):
+    """Execute action in environment."""
+    env = get_environment()
+    
+    try:
+        # The request_body is the action dict directly
+        # Check if it has action_type (valid action)
+        if "action_type" not in request_body:
+            return {
+                "observation": {
+                    "message": "Invalid request",
+                    "error": "Missing 'action_type' field in request body"
+                },
+                "reward": -0.5,
+                "done": True
+            }
+        
+        # Parse action from the request body directly
+        action = SupportAction(**request_body)
+        
+        # Store current total reward BEFORE step
+        reward_before = env.total_reward
+        
+        # Execute step
+        obs = env.step(action)
+        
+        # Calculate reward for THIS step only
+        step_reward = env.total_reward - reward_before
+        
+        return {
+            "observation": obs.__dict__,
+            "reward": step_reward,
+            "done": obs.done
+        }
+    except Exception as e:
+        return {
+            "observation": {
+                "message": "Error executing action",
+                "resolution_message": f"ERROR: {str(e)}",
+                "error": True
+            },
+            "reward": -0.5,
+            "done": True
+        }
+
+@app.get("/state")
+async def state_endpoint():
+    """Get current environment state."""
+    env = get_environment()
+    
+    if env.current_ticket is None:
+        return {
+            "status": "no_ticket_loaded",
+            "message": "Call /reset first to load a ticket",
+            "current_ticket": None
+        }
+    else:
+        # Build observation from current state
+        obs = env._observation(
+            status="active",
+            reward=0.0,
+            done=False
+        )
+        return obs.__dict__
+
+
+# ============================================================
+# CORS & Gradio Setup
+# ============================================================
+
 from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
@@ -85,7 +194,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 # Build custom Gradio UI
 gradio_app = build_gradio_app(
