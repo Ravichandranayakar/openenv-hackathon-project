@@ -37,10 +37,8 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
             # close_ticket only needs action_type
             pass
         
-        action_payload = {"action": action_dict}
-        
         try:
-            r = client.post("/step", json=action_payload)
+            r = client.post("/step", json=action_dict)
             if r.status_code == 200:
                 data = r.json()
                 obs = data.get("observation", {})
