@@ -8,31 +8,43 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
     del web_manager, action_fields, metadata, is_chat_env, quick_start_md
 
     def step_action(action_type, classification, category, solution, should_escalate, escalate_reason, history_state):
+        # Validate action_type first (must be explicitly selected)
+        if not action_type or (isinstance(action_type, str) and action_type.strip() == ""):
+            return ("", "<div style='background:#fee; color:#c33; padding:10px; border-radius:4px;'>❌ Error: Action Type required. Please select an action type.</div>",
+                    render_action_history(history_state), "Missing action_type", history_state, "")
+
+        # normalize
+        if isinstance(action_type, str):
+            action_type = action_type.strip()
+
         # Build action payload based on action_type
-        # Only include fields relevant to the current step
         action_dict = {"action_type": action_type}
-        
+
         if action_type == "classify_issue":
-            if not classification:
-                return ("", "<div style='background:#fee; color:#c33; padding:10px; border-radius:4px;'>❌ Error: Classification required for classify_issue</div>", 
+            if not classification or str(classification).strip() == "":
+                return ("", "<div style='background:#fee; color:#c33; padding:10px; border-radius:4px;'>❌ Error: Classification required for classify_issue</div>",
                         render_action_history(history_state), "Missing classification", history_state, "")
-            action_dict["classification"] = classification
-        
+            action_dict["classification"] = str(classification).strip()
+
         elif action_type == "choose_solution":
-            if not category or not solution:
-                return ("", "<div style='background:#fee; color:#c33; padding:10px; border-radius:4px;'>❌ Error: Category and Solution required for choose_solution</div>", 
+            if not category or str(category).strip() == "" or not solution or str(solution).strip() == "":
+                return ("", "<div style='background:#fee; color:#c33; padding:10px; border-radius:4px;'>❌ Error: Category and Solution required for choose_solution</div>",
                         render_action_history(history_state), "Missing category or solution", history_state, "")
-            action_dict["category"] = category
-            action_dict["solution"] = solution
-        
+            action_dict["category"] = str(category).strip()
+            action_dict["solution"] = str(solution).strip()
+
         elif action_type == "escalate_decision":
-            if should_escalate is None or should_escalate.strip() == "":
-                return ("", "<div style='background:#fee; color:#c33; padding:10px; border-radius:4px;'>❌ Error: Should Escalate required (true/false)</div>", 
+            if should_escalate is None or str(should_escalate).strip() == "":
+                return ("", "<div style='background:#fee; color:#c33; padding:10px; border-radius:4px;'>❌ Error: Should Escalate required (true/false)</div>",
                         render_action_history(history_state), "Missing escalation decision", history_state, "")
-            action_dict["should_escalate"] = should_escalate.lower() == "true"
-            if escalate_reason and escalate_reason.strip():
-                action_dict["escalate_reason"] = escalate_reason
-        
+            val = str(should_escalate).strip().lower()
+            if val not in ("true", "false"):
+                return ("", "<div style='background:#fee; color:#c33; padding:10px; border-radius:4px;'>❌ Error: Should Escalate must be 'true' or 'false'</div>",
+                        render_action_history(history_state), "Invalid escalation value", history_state, "")
+            action_dict["should_escalate"] = val == "true"
+            if escalate_reason and str(escalate_reason).strip():
+                action_dict["escalate_reason"] = str(escalate_reason).strip()
+
         elif action_type == "close_ticket":
             # close_ticket only needs action_type
             pass
