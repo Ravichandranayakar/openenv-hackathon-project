@@ -44,7 +44,18 @@ class CurriculumLearningAgent:
         self.escalation_keywords = set()  # Learn escalation patterns
         
         # Action options
-        self.classifications = ['billing', 'account', 'technical', 'bug', 'feature']
+        # VALID classifications: billing, account, bug, feature (NOT 'technical')
+        self.classifications = ['billing', 'account', 'bug', 'feature']
+        
+        # Category mapping to classification types (prevents mismatched actions)
+        self.categories_by_classification = {
+            'billing': ['duplicate_charge', 'wrong_amount', 'subscription_issue', 'fraud'],
+            'account': ['password', 'email', '2fa', 'security'],
+            'bug': ['app_crash', 'ui_glitch', 'missing_data', 'critical'],
+            'feature': ['how_to', 'capability', 'api', 'custom']
+        }
+        
+        # All categories (for fallback)
         self.categories = ['duplicate_charge', 'subscription_issue', 'password', 'account_locked', 
                           'api_error', 'performance', 'fraud', 'security', 'email', '2fa',
                           'app_crash', 'ui_glitch', 'missing_data', 'critical', 'how_to', 'capability', 'custom']
@@ -77,24 +88,33 @@ class CurriculumLearningAgent:
         
         for option in options:
             option_str = str(option)
-            scores_list = []
+            success_count = 0
+            total_count = 0
             
+            # Check learned patterns from this message's keywords
             for kw in keywords:
                 if kw in self.keyword_success and option_str in self.keyword_success[kw]:
                     stats = self.keyword_success[kw][option_str]
-                    if stats['total'] > 0:
-                        success_rate = stats['success'] / stats['total']
-                        scores_list.append(success_rate)
+                    success_count += stats['success']
+                    total_count += stats['total']
             
-            if scores_list:
-                action_scores[option] = sum(scores_list) / len(scores_list)
+            # Calculate success rate with penalty for negative outcomes
+            if total_count > 0:
+                success_rate = success_count / total_count
+                # Penalize if success rate is low (learn to avoid bad actions)
+                action_scores[option] = max(0.0, success_rate)  # Don't go below 0
             else:
                 action_scores[option] = 0.5  # Unknown = neutral
         
-        # Epsilon-greedy: 80% exploitation, 20% exploration
-        if random.random() < 0.80 and action_scores:
+        # Epsilon-greedy: Start 70% exploitation, increase to 95% over episodes
+        # This improves from early exploration to late exploitation
+        exploration_rate = max(0.05, 0.7 - (self.episodes_seen / 500.0) * 0.65)
+        
+        if random.random() > exploration_rate and action_scores:
+            # Exploitation: pick best learned action
             return max(action_scores.items(), key=lambda x: x[1])[0]
         else:
+            # Exploration: try random action
             return random.choice(options)
     
     def step(self, env, observation):
@@ -112,13 +132,20 @@ class CurriculumLearningAgent:
             self.action_accuracy['classification']['correct' if is_correct else 'wrong'] += 1
             self.action_accuracy['classification']['rewards'].append(observation.classification_reward)
             
+            # Track success/failure for this classification choice
             for kw in keywords:
-                self.keyword_success[kw][classification]['success'] += is_correct
+                self.keyword_success[kw][classification]['success'] += (1 if is_correct else 0)
                 self.keyword_success[kw][classification]['total'] += 1
         
-        # STEP 2: Category
-        category = self._select_action(message, self.categories)
+        # STEP 2: Category & Solution
+        # IMPORTANT: Pick categories that match the classification from Step 1
+        # This prevents "mismatched action" errors that cause early termination
+        valid_categories = self.categories_by_classification.get(classification, self.categories)
+        category = self._select_action(message, valid_categories)
+        
+        # Pick solution from pre-defined set (agent will learn which work)
         solution = self._select_action(message, self.solutions)
+        
         action = SupportAction(action_type="choose_solution", category=category, solution=solution)
         observation = env.step(action)
         
@@ -126,9 +153,15 @@ class CurriculumLearningAgent:
             is_correct = observation.solution_reward > 0
             self.action_accuracy['solution']['correct' if is_correct else 'wrong'] += 1
             self.action_accuracy['solution']['rewards'].append(observation.solution_reward)
+            
+            # Track this solution choice
+            for kw in keywords:
+                solution_key = f"{category}_{solution}"
+                self.keyword_success[kw][solution_key]['success'] += (1 if is_correct else 0)
+                self.keyword_success[kw][solution_key]['total'] += 1
         
-        # STEP 3: Escalation - KEY LEARNING POINT
-        # Agent should learn to escalate when seeing keywords
+        # STEP 3: Escalation Decision
+        # Agent learns escalation from keywords and ticket severity
         should_escalate = self._select_action(message, [True, False])
         action = SupportAction(action_type="escalate_decision", should_escalate=should_escalate)
         observation = env.step(action)
@@ -141,12 +174,15 @@ class CurriculumLearningAgent:
             # Learn escalation patterns from keywords
             for kw in keywords:
                 escalation_str = str(should_escalate)
-                self.keyword_success[kw][escalation_str]['success'] += is_correct
+                self.keyword_success[kw][escalation_str]['success'] += (1 if is_correct else 0)
                 self.keyword_success[kw][escalation_str]['total'] += 1
         
-        # STEP 4: Close
+        # STEP 4: Close Ticket
         action = SupportAction(action_type="close_ticket")
         observation = env.step(action)
+        
+        # Increment episode counter for exploration decay
+        self.episodes_seen += 1
         
         return observation.episode_reward
     
