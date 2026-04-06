@@ -12,6 +12,7 @@ server:
   port: 8000
   module: my_env.server.app
   app: app
+  main: main
 
 metadata:
   author: Hackathon Team

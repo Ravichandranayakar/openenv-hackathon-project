@@ -3,6 +3,7 @@ name: customer_support_env
 type: space
 runtime: fastapi
 app: my_env.server.app:app
+main: my_env.server.app:main
 port: 8000
 description: "Customer Support OpenEnv Environment - Train AI agents to handle support tickets"
 

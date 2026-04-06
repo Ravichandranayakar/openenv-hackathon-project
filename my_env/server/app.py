@@ -120,9 +120,13 @@ async def step_endpoint(request_body: Dict[str, Any] = Body(..., embed=False)):
     env = get_environment()
     
     try:
-        # The request_body is the action dict directly
+        # Handle both wrapped {"action": {...}} and direct {...} formats
+        action_data = request_body
+        if "action" in request_body and isinstance(request_body.get("action"), dict):
+            action_data = request_body["action"]
+        
         # Check if it has action_type (valid action)
-        if "action_type" not in request_body:
+        if "action_type" not in action_data:
             return {
                 "observation": {
                     "message": "Invalid request",
@@ -132,8 +136,8 @@ async def step_endpoint(request_body: Dict[str, Any] = Body(..., embed=False)):
                 "done": True
             }
         
-        # Parse action from the request body directly
-        action = SupportAction(**request_body)
+        # Parse action from the action data
+        action = SupportAction(**action_data)
         
         # Store current total reward BEFORE step
         reward_before = env.total_reward
@@ -226,9 +230,11 @@ def main(host: str = "0.0.0.0", port: int = 8000):
     uvicorn.run(app, host=host, port=port)
 
 
+# Make main() callable at module level for openenv validator
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
+    parser.add_argument("--host", type=str, default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8000)
     args = parser.parse_args()
-    main(port=args.port)
+    main(host=args.host, port=args.port)
