@@ -6,7 +6,6 @@ colorTo: green
 sdk: docker
 pinned: false
 app_port: 8000
-base_path: /
 tags:
   - openenv
   - rl
@@ -98,8 +97,7 @@ openenv-hackathon-project/
 │   │
 │   └── server/                            # FastAPI server & core environment logic
 │       ├── __init__.py
-│       ├── app.py                         # FastAPI app: REST API + Gradio UI at root (/)
-│       ├── gradio_ui.py                   # Custom Gradio interface builder (reset, step, get state buttons)
+│       ├── app.py                         # FastAPI server with 6 endpoints (/reset, /step, /state, /schema, /health, /tasks)
 │       ├── customer_support_environment.py # Core RL environment class
 │       │
 │       ├── data/                          # Ticket data and utilities
@@ -118,35 +116,11 @@ openenv-hackathon-project/
 ```
 
 **Key Files at a Glance:**
-- **API Server**: `my_env/server/app.py` (FastAPI with OpenEnv + Gradio UI mounting)
-- **Gradio UI**: `my_env/server/gradio_ui.py` (Custom interactive interface)
+- **API Server**: `my_env/server/app.py` (FastAPI with persistent environment)
 - **Core Logic**: `my_env/server/customer_support_environment.py` + `my_env/server/logic/ticket_resolver.py`
 - **Inference**: `inference.py` (for hackathon submission with proper logging)
 - **Testing**: `tests/final_comprehensive_test.py` (anti-cheating measures)
 - **API Docs**: `API_USAGE_GUIDE.md` (complete examples for using endpoints)
----
-
-### Architecture: REST API + Gradio UI
-
-This project provides **two ways to interact** with the environment:
-
-#### 1. **Web UI (Gradio)** - For Interactive Testing
-- **Location**: Root path `/` (visible at main Space URL on Hugging Face Spaces)
-- **Features**: Custom buttons for Reset, Step, Get State
-- **Use Case**: Easy manual testing, demos, judge-friendly interface
-- **Built by**: `my_env/server/gradio_ui.py` and mounted in `app.py`
-
-#### 2. **REST API** - For Agent Integration
-- **Endpoints**: `/reset`, `/step`, `/state`, `/health`, `/schema`, `/tasks`
-- **Use Case**: Agent training, inference, programmatic access
-- **Docs**: See [API_USAGE_GUIDE.md](./API_USAGE_GUIDE.md)
-- **Implemented by**: OpenEnv's `create_app()` in `my_env/server/app.py`
-
-**How They Work Together:**
-- The Gradio UI (located at `/`) makes HTTP calls to the same REST API endpoints
-- Both interfaces access the same backend environment (`CustomerSupportEnvironment`)
-- Perfect setup for hackathon: judges can see a clean UI, but agents can use the API
-
 ---
 
 ### Key Features

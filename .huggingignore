@@ -1,0 +1,54 @@
+# Hugging Face Spaces upload exclusions
+# Exclude Python virtual environments and common binary artifacts
+venv/
+.venv/
+env/
+openenv/
+
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+pip-wheel-metadata/
+
+# C extensions and compiled artifacts
+*.so
+*.dll
+*.dylib
+*.exe
+*.pyd
+
+# Wheels and caches
+*.whl
+.cache/
+/.cache/
+
+# SQLite and DB files
+*.db
+*.sqlite3
+
+# Logs and temporary files
+*.log
+tmp/
+temp/
+
+# Docker and container artifacts
+docker-compose.override.yml
+docker-compose.*.yml
+
+# VS Code / IDE
+.vscode/
+.idea/
+
+# Environment files (do not upload secrets)
+.env
+
+# Testing outputs
+.pytest_cache/
+test_output.txt

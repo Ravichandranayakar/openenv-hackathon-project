@@ -278,19 +278,49 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
                     info="Step 1→2→3→4",
                     scale=3
                 )
-            with gr.Row():
-                classification = gr.Textbox(label="Classification (Step 1)", placeholder="billing, account, bug, feature", scale=1)
-                category = gr.Textbox(label="Category (Step 2)", placeholder="duplicate_charge, password, api, etc.", scale=1)
-            with gr.Row():
-                solution = gr.Textbox(label="Solution (Step 2)", placeholder="refund_duplicate_charge, reset_password_link, etc.", scale=2)
-            with gr.Row():
-                should_escalate = gr.Textbox(label="Escalate? (Step 3)", placeholder="true or false", scale=1)
-                escalate_reason = gr.Textbox(label="Reason (if true)", placeholder="fraud_suspected, security_breach, etc.", scale=1)
+            
+            # Step 1: classify_issue (1 field)
+            with gr.Row(visible=True) as row_classify:
+                classification = gr.Textbox(label="Classification", placeholder="billing, account, bug, feature", scale=1)
+            
+            # Step 2: choose_solution (2 fields)
+            with gr.Row(visible=False) as row_solution:
+                category = gr.Textbox(label="Category", placeholder="duplicate_charge, password, api, etc.", scale=1)
+                solution = gr.Textbox(label="Solution", placeholder="refund_duplicate_charge, reset_password_link, etc.", scale=1)
+            
+            # Step 3: escalate_decision (2 fields)
+            with gr.Row(visible=False) as row_escalate:
+                should_escalate = gr.Textbox(label="Escalate? (true/false)", placeholder="true or false", scale=1)
+                escalate_reason = gr.Textbox(label="Reason (if escalating)", placeholder="fraud_suspected, security_breach, etc.", scale=1)
+            
+            # Step 4: close_ticket (message only)
+            with gr.Row(visible=False) as row_close:
+                gr.Markdown("## ✅ Close Ticket\nClick **EXECUTE STEP** to close the ticket")
             
             with gr.Row():
                 step_btn = gr.Button("EXECUTE STEP", variant="primary", scale=2)
                 reset_btn = gr.Button("RESET", scale=1)
                 state_btn = gr.Button("GET STATE", scale=1)
+            
+            # Update form visibility based on action type
+            def update_form_visibility(action):
+                is_classify = action == "classify_issue"
+                is_solution = action == "choose_solution"
+                is_escalate = action == "escalate_decision"
+                is_close = action == "close_ticket"
+                
+                return [
+                    gr.update(visible=is_classify),      # row_classify
+                    gr.update(visible=is_solution),      # row_solution
+                    gr.update(visible=is_escalate),      # row_escalate
+                    gr.update(visible=is_close)          # row_close
+                ]
+            
+            action_type.change(
+                update_form_visibility,
+                inputs=[action_type],
+                outputs=[row_classify, row_solution, row_escalate, row_close]
+            )
         
         # ======== ZONE 2: REWARD SCOREBOARD ========
         scoreboard_html = gr.HTML("<div style='padding: 20px; color: #999; text-align: center;'>Reset to see metrics</div>")
