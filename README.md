@@ -163,7 +163,7 @@ Endpoint | Method | Status | Description
 
 **For detailed examples, request/response formats, and complete workflows, see:**
 
- **[API_USAGE_GUIDE.md](./API_USAGE_GUIDE.md)** ← **START HERE**
+ **[API_USAGE_GUIDE.md](my_env/API_USAGE_GUIDE.md)** ← **START HERE**
 
 This guide includes:
 - ✅ Step-by-step curl examples for each endpoint
@@ -220,7 +220,7 @@ print('5️  Close:', r.status_code, f'Score: {data[\"observation\"][\"episode_s
 
 ---
 
-For more details, see [API_USAGE_GUIDE.md](./API_USAGE_GUIDE.md) for complete endpoint documentation.
+For more details, see [API_USAGE_GUIDE.md](my_env/API_USAGE_GUIDE.md) for complete endpoint documentation.
 - 2fa -> reset_2fa, send_recovery_codes
 - security -> escalate_security, freeze_account
 
