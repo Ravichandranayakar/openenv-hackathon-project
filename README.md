@@ -306,11 +306,11 @@ openenv push --name RavichandraNayakar/my_env --token <hf_token>
 ```
 **Hugging Face Space URL**
 ```
-    https://huggingface.co/spaces/RavichandraNayakar/customer_support_env
+https://huggingface.co/spaces/RavichandraNayakar/customer_support_env
 ```
 **If HF Space shows blank screen:** Use this direct link instead:
 ```
-    https://ravichandranayakar-customer-support-env.hf.space/web
+https://ravichandranayakar-customer-support-env.hf.space/web
 ```
 
 ### Docker
