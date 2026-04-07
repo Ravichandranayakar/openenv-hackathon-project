@@ -22,6 +22,7 @@ Results:
 
 import random
 from collections import defaultdict
+import re
 
 try:
     from .models import SupportAction
@@ -69,16 +70,26 @@ class CurriculumLearningAgent:
                          'investigate_fraud']
     
     def _extract_keywords(self, message):
-        """Extract important keywords from message"""
+        """Extract important keywords from message.
+
+        Uses regex tokenization to strip punctuation and better match escalation words.
+        """
         message_lower = message.lower()
-        keywords = set(message_lower.split())
-        
-        # Track escalation keywords
-        escalation_words = {'fraud', 'hacked', 'emergency', 'critical', 'breach', 
-                           'unauthorized', 'urgent', 'down', 'compromised', 'security',
-                           'suspicious', 'exposed', 'halted', 'operations'}
-        self.escalation_keywords.update(keywords & escalation_words)
-        
+        # Use word characters to avoid punctuation interfering (e.g., 'urgent.' -> 'urgent')
+        keywords = set(re.findall(r"\w+", message_lower))
+
+        # Expanded escalation keywords set for better coverage
+        escalation_words = {
+            'fraud', 'hacked', 'emergency', 'critical', 'breach',
+            'unauthorized', 'urgent', 'down', 'compromised', 'security',
+            'suspicious', 'exposed', 'halted', 'operations', 'immediately', 'asap',
+            'outage', 'downtime', 'payment', 'chargeback', 'overcharged'
+        }
+
+        matched = keywords & escalation_words
+        if matched:
+            self.escalation_keywords.update(matched)
+
         return keywords
     
     def _select_action(self, message, options):
