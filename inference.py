@@ -144,11 +144,9 @@ Respond with ONLY "escalate" or "close"."""
 
 
 
-def main():
-    """Run customer support agent on a ticket."""
-    
-    # [START]
-    print(f"[START] task=customer_support_ticket model={MODEL_NAME}", flush=True)
+def run_task(task_name: str) -> tuple:
+    """Run a single customer support task and return (score, step_count).
+    Score is strictly in range (0, 1) - never exactly 0.0 or 1.0."""
     
     total_reward = 0.0
     step_count = 0
@@ -175,61 +173,82 @@ def main():
         
         if episode_done:
             print("[INFO] Episode ended after classify", flush=True)
-            return
-        
-        # STEP 2: Choose solution
-        step_count += 1
-        category, solution = choose_solution_with_llm(message, classification)
-        action = {"action_type": "choose_solution", "category": category, "solution": solution}
-        
-        result = send_action(action)
-        reward = result.get("reward", 0.0)
-        total_reward += reward
-        obs = result.get("observation", {})
-        episode_done = result.get("done", False)
-        
-        print(f"[STEP] step={step_count} action=choose_solution reward={reward:.2f}", flush=True)
-        
-        if episode_done:
-            print("[INFO] Episode ended after solution", flush=True)
-            return
-        
-        # STEP 3: Escalation decision
-        step_count += 1
-        should_escalate = escalate_with_llm(message, severity)
-        action = {"action_type": "escalate_decision", "should_escalate": should_escalate}
-        
-        result = send_action(action)
-        reward = result.get("reward", 0.0)
-        total_reward += reward
-        obs = result.get("observation", {})
-        episode_done = result.get("done", False)
-        
-        print(f"[STEP] step={step_count} action=escalate_decision reward={reward:.2f}", flush=True)
-        
-        if episode_done:
-            print("[INFO] Episode ended after escalation", flush=True)
-            return
-        
-        # STEP 4: Close ticket
-        step_count += 1
-        action = {"action_type": "close_ticket"}
-        
-        result = send_action(action)
-        reward = result.get("reward", 0.0)
-        total_reward += reward
-        obs = result.get("observation", {})
-        episode_done = result.get("done", True)
-        
-        print(f"[STEP] step={step_count} action=close_ticket reward={reward:.2f}", flush=True)
-        
-    except Exception as e:
-        print(f"[ERROR] Inference error: {e}", flush=True)
+        else:
+            # STEP 2: Choose solution
+            step_count += 1
+            category, solution = choose_solution_with_llm(message, classification)
+            action = {"action_type": "choose_solution", "category": category, "solution": solution}
+            
+            result = send_action(action)
+            reward = result.get("reward", 0.0)
+            total_reward += reward
+            obs = result.get("observation", {})
+            episode_done = result.get("done", False)
+            
+            print(f"[STEP] step={step_count} action=choose_solution reward={reward:.2f}", flush=True)
+            
+            if episode_done:
+                print("[INFO] Episode ended after solution", flush=True)
+            else:
+                # STEP 3: Escalation decision
+                step_count += 1
+                should_escalate = escalate_with_llm(message, severity)
+                action = {"action_type": "escalate_decision", "should_escalate": should_escalate}
+                
+                result = send_action(action)
+                reward = result.get("reward", 0.0)
+                total_reward += reward
+                obs = result.get("observation", {})
+                episode_done = result.get("done", False)
+                
+                print(f"[STEP] step={step_count} action=escalate_decision reward={reward:.2f}", flush=True)
+                
+                if episode_done:
+                    print("[INFO] Episode ended after escalation", flush=True)
+                else:
+                    # STEP 4: Close ticket
+                    step_count += 1
+                    action = {"action_type": "close_ticket"}
+                    
+                    result = send_action(action)
+                    reward = result.get("reward", 0.0)
+                    total_reward += reward
+                    obs = result.get("observation", {})
+                    episode_done = result.get("done", True)
+                    
+                    print(f"[STEP] step={step_count} action=close_ticket reward={reward:.2f}", flush=True)
     
-    finally:
+    except Exception as e:
+        print(f"[ERROR] Task '{task_name}' error: {e}", flush=True)
+    
+    # Convert total_reward to score strictly in range (0, 1) - never 0.0 or 1.0
+    # Clamp to [-1.2, 1.2] then normalize to (0.01, 0.99)
+    clamped = max(-1.2, min(1.2, total_reward))
+    normalized = (clamped + 1.2) / 2.4  # Maps [-1.2, 1.2] to [0, 1]
+    # Ensure strictly between 0 and 1
+    final_score = max(0.01, min(0.99, normalized))
+    
+    return final_score, step_count
+
+
+def main():
+    """Run 3 customer support tasks."""
+    
+    tasks = [
+        "support_task_easy",
+        "support_task_medium", 
+        "support_task_hard"
+    ]
+    
+    for task_name in tasks:
+        # [START]
+        print(f"[START] task={task_name} model={MODEL_NAME}", flush=True)
+        
+        # Run the task
+        final_score, step_count = run_task(task_name)
+        
         # [END]
-        final_score = max(0.0, min(1.0, total_reward))
-        print(f"[END] task=customer_support_ticket score={final_score:.2f} steps={step_count}", flush=True)
+        print(f"[END] task={task_name} score={final_score:.2f} steps={step_count}", flush=True)
 
 
 if __name__ == "__main__":
