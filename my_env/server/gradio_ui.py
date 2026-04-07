@@ -269,7 +269,7 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
         # ======== ZONE 1: INPUT ========
         with gr.Group():
             gr.Markdown("### Step-by-Step Action Input")
-            gr.Markdown("<div style='background: #1a3a3a; padding: 12px; border-radius: 4px; font-size: 12px; color: #aaa; margin-bottom: 15px;'><b>📝 Instructions:</b> Select action type → Fill in required field(s) → Click EXECUTE STEP → Repeat for next step</div>")
+            gr.Markdown("<div style='background: #1a3a3a; padding: 12px; border-radius: 4px; font-size: 12px; color: #aaa; margin-bottom: 15px;'><b> Instructions:</b> Select action type → Fill in required field(s) → Click EXECUTE STEP → Repeat for next step</div>")
             with gr.Row():
                 action_type = gr.Dropdown(
                     choices=["classify_issue", "choose_solution", "escalate_decision", "close_ticket"],
