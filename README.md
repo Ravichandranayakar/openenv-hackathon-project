@@ -94,6 +94,7 @@ openenv-hackathon-project/
 ├── my_env/                                # Main OpenEnv environment package
 │   ├── __init__.py
 │   ├── agents.py                          # Agent baseline implementations
+│   ├── graders.py                         # Server-side task graders (Easy/Medium/Hard)
 │   ├── openenv.yaml                       # OpenEnv spec (my_env level, optional override)
 │   │
 │   └── server/                            # FastAPI server & core environment logic
