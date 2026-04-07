@@ -4,11 +4,16 @@ Customer Support OpenEnv - Inference Script for Hackathon
 
 An AI agent that solves customer support tickets using the OpenEnv API.
 Required environment variables:
-  - API_BASE_URL:  OpenEnv server endpoint (e.g., http://localhost:8000)
-  - MODEL_NAME:    LLM model (e.g., gpt-4-turbo)
-  - HF_TOKEN or OPENAI_API_KEY: API credentials
+  - API_BASE_URL:  HuggingFace LLM API endpoint (e.g., https://router.huggingface.co/v1)
+  - MODEL_NAME:    LLM model name (e.g., Qwen/Qwen2.5-72B-Instruct)
+  - HF_TOKEN:      HuggingFace API token
 
-Output Format: Strict [START], [STEP], [END] JSON logs for hackathon grader
+Output Format: Strict [START], [STEP], [END] text format (NOT JSON) for hackathon grader
+Example:
+  [START] task=customer_support_ticket model=Qwen/Qwen2.5-72B-Instruct
+  [STEP] step=1 action=classify_issue reward=0.50
+  [STEP] step=2 action=choose_solution reward=0.30
+  [END] task=customer_support_ticket score=0.80 steps=2
 """
 
 import os
@@ -20,25 +25,28 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Configuration
-API_BASE_URL = os.environ.get("API_BASE_URL", "http://localhost:8000")
-MODEL_NAME = os.environ.get("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")  # Match .env
-HF_TOKEN = os.environ.get("HF_TOKEN")  # No default - must be set
+# Configuration - REQUIRED BY HACKATHON
+API_BASE_URL = os.environ.get("API_BASE_URL", "https://router.huggingface.co/v1")  # HuggingFace LLM API
+MODEL_NAME = os.environ.get("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
+HF_TOKEN = os.environ.get("HF_TOKEN")  # HuggingFace API token
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
 # Use HF_TOKEN if available, otherwise fall back to OPENAI_API_KEY
 API_KEY = HF_TOKEN or OPENAI_API_KEY
 
-# Initialize OpenAI client (API_BASE_URL is for OpenEnv server, not for OpenAI)
+# Initialize OpenAI client for HuggingFace API
 client = OpenAI(
     api_key=API_KEY if API_KEY else "dummy-key",
-    # Note: For HF inference, you might need additional config
+    base_url=API_BASE_URL  # Point to HuggingFace API
 )
 
+# OpenEnv environment server (local or provided by hackathon)
+OPENENV_SERVER = os.environ.get("OPENENV_SERVER", "http://localhost:8000")
+
 # OpenEnv server endpoints
-RESET_URL = f"{API_BASE_URL}/reset"
-STEP_URL = f"{API_BASE_URL}/step"
-STATE_URL = f"{API_BASE_URL}/state"
+RESET_URL = f"{OPENENV_SERVER}/reset"
+STEP_URL = f"{OPENENV_SERVER}/step"
+STATE_URL = f"{OPENENV_SERVER}/state"
 
 MAX_STEPS = 10
 
@@ -136,11 +144,7 @@ def main():
     """Run customer support agent on a ticket."""
     
     # [START]
-    print(json.dumps({
-        "type": "[START]",
-        "task": "customer_support_ticket",
-        "model": MODEL_NAME
-    }), flush=True)
+    print(f"[START] task=customer_support_ticket model={MODEL_NAME}", flush=True)
     
     total_reward = 0.0
     step_count = 0
@@ -163,16 +167,11 @@ def main():
         obs = result.get("observation", {})
         episode_done = result.get("done", False)
         
-        print(json.dumps({
-            "type": "[STEP]",
-            "step": step_count,
-            "action": action,
-            "reward": reward,
-            "done": episode_done
-        }), flush=True)
+        print(f"[STEP] step={step_count} action=classify_issue reward={reward:.2f}", flush=True)
         
         if episode_done:
-            raise Exception("Episode ended after classify")
+            print("[INFO] Episode ended after classify", flush=True)
+            return
         
         # STEP 2: Choose solution
         step_count += 1
@@ -185,16 +184,11 @@ def main():
         obs = result.get("observation", {})
         episode_done = result.get("done", False)
         
-        print(json.dumps({
-            "type": "[STEP]",
-            "step": step_count,
-            "action": action,
-            "reward": reward,
-            "done": episode_done
-        }), flush=True)
+        print(f"[STEP] step={step_count} action=choose_solution reward={reward:.2f}", flush=True)
         
         if episode_done:
-            raise Exception("Episode ended after solution")
+            print("[INFO] Episode ended after solution", flush=True)
+            return
         
         # STEP 3: Escalation decision
         step_count += 1
@@ -207,16 +201,11 @@ def main():
         obs = result.get("observation", {})
         episode_done = result.get("done", False)
         
-        print(json.dumps({
-            "type": "[STEP]",
-            "step": step_count,
-            "action": action,
-            "reward": reward,
-            "done": episode_done
-        }), flush=True)
+        print(f"[STEP] step={step_count} action=escalate_decision reward={reward:.2f}", flush=True)
         
         if episode_done:
-            raise Exception("Episode ended after escalation")
+            print("[INFO] Episode ended after escalation", flush=True)
+            return
         
         # STEP 4: Close ticket
         step_count += 1
@@ -228,26 +217,15 @@ def main():
         obs = result.get("observation", {})
         episode_done = result.get("done", True)
         
-        print(json.dumps({
-            "type": "[STEP]",
-            "step": step_count,
-            "action": action,
-            "reward": reward,
-            "done": episode_done
-        }), flush=True)
+        print(f"[STEP] step={step_count} action=close_ticket reward={reward:.2f}", flush=True)
         
     except Exception as e:
-        print(f"[DEBUG] Inference error: {e}", flush=True, file=__import__('sys').stderr)
+        print(f"[ERROR] Inference error: {e}", flush=True)
     
     finally:
         # [END]
         final_score = max(0.0, min(1.0, total_reward))
-        print(json.dumps({
-            "type": "[END]",
-            "episode_reward": total_reward,
-            "episode_score": final_score,
-            "done": episode_done
-        }), flush=True)
+        print(f"[END] task=customer_support_ticket score={final_score:.2f} steps={step_count}", flush=True)
 
 
 if __name__ == "__main__":
