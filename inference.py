@@ -26,18 +26,22 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configuration - REQUIRED BY HACKATHON
-API_BASE_URL = os.environ.get("API_BASE_URL", "https://router.huggingface.co/v1")  # HuggingFace LLM API
+API_BASE_URL = os.environ.get("API_BASE_URL", "https://router.huggingface.co/v1")  # HuggingFace LLM API (or hackathon's LiteLLM proxy)
 MODEL_NAME = os.environ.get("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
-HF_TOKEN = os.environ.get("HF_TOKEN")  # HuggingFace API token
+HF_TOKEN = os.environ.get("HF_TOKEN")  # Local HuggingFace API token
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
-# Use HF_TOKEN if available, otherwise fall back to OPENAI_API_KEY
-API_KEY = HF_TOKEN or OPENAI_API_KEY
+# PRIORITY: Use hackathon's API_KEY first (LiteLLM proxy), then fall back to local tokens
+API_KEY = os.environ.get("API_KEY") or HF_TOKEN or OPENAI_API_KEY
 
-# Initialize OpenAI client for HuggingFace API
+# Ensure API_KEY is available
+if not API_KEY:
+    raise ValueError("API_KEY environment variable not set. Required for hackathon submission.")
+
+# Initialize OpenAI client
 client = OpenAI(
-    api_key=API_KEY if API_KEY else "dummy-key",
-    base_url=API_BASE_URL  # Point to HuggingFace API
+    api_key=API_KEY,
+    base_url=API_BASE_URL  # Use hackathon's proxy or HuggingFace API
 )
 
 # OpenEnv environment server (local or provided by hackathon)
