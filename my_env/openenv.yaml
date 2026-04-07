@@ -14,6 +14,22 @@ server:
   app: app
   main: main
 
+tasks:
+  - id: easy_task
+    name: "Easy Support Task"
+    description: "Handle a simple customer support ticket"
+    grader: my_env.graders:EasyTaskGrader
+  
+  - id: medium_task
+    name: "Medium Support Task"
+    description: "Handle a moderately complex customer support ticket"
+    grader: my_env.graders:MediumTaskGrader
+  
+  - id: hard_task
+    name: "Hard Support Task"
+    description: "Handle a complex customer support ticket"
+    grader: my_env.graders:HardTaskGrader
+
 metadata:
   author: Hackathon Team
   website: https://huggingface.co/spaces

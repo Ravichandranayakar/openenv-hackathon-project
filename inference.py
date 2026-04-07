@@ -26,13 +26,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configuration - REQUIRED BY HACKATHON
-API_BASE_URL = os.environ.get("API_BASE_URL", "https://router.huggingface.co/v1")  # HuggingFace LLM API (or hackathon's LiteLLM proxy)
+API_BASE_URL = os.environ.get("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME = os.environ.get("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
-HF_TOKEN = os.environ.get("HF_TOKEN")  # Local HuggingFace API token
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
-# PRIORITY: Use hackathon's API_KEY first (LiteLLM proxy), then fall back to local tokens
-API_KEY = os.environ.get("API_KEY") or HF_TOKEN or OPENAI_API_KEY
+# STRICT: Use only API_KEY from environment as specified by hackathon
+# Fallback to HF_TOKEN only for local development
+API_KEY = os.environ.get("API_KEY") or os.environ.get("HF_TOKEN")
 
 # Ensure API_KEY is available
 if not API_KEY:
@@ -145,12 +144,13 @@ Respond with ONLY "escalate" or "close"."""
 
 
 def run_task(task_name: str) -> tuple:
-    """Run a single customer support task and return (score, step_count).
+    """Run a single customer support task and return (score, step_count, rewards_list).
     Score is strictly in range (0, 1) - never exactly 0.0 or 1.0."""
     
-    total_reward = 0.0
+    rewards_list = []  # Track all step rewards
     step_count = 0
     episode_done = False
+    env_name = "customer_support_env"
     
     try:
         # RESET: Load a random ticket
@@ -165,15 +165,15 @@ def run_task(task_name: str) -> tuple:
         
         result = send_action(action)
         reward = result.get("reward", 0.0)
-        total_reward += reward
+        rewards_list.append(reward)
         obs = result.get("observation", {})
         episode_done = result.get("done", False)
         
-        print(f"[STEP] step={step_count} action=classify_issue reward={reward:.2f}", flush=True)
+        error_msg = "null"
+        done_str = "true" if episode_done else "false"
+        print(f"[STEP] step={step_count} action=classify_issue reward={reward:.2f} done={done_str} error={error_msg}", flush=True)
         
-        if episode_done:
-            print("[INFO] Episode ended after classify", flush=True)
-        else:
+        if not episode_done:
             # STEP 2: Choose solution
             step_count += 1
             category, solution = choose_solution_with_llm(message, classification)
@@ -181,15 +181,15 @@ def run_task(task_name: str) -> tuple:
             
             result = send_action(action)
             reward = result.get("reward", 0.0)
-            total_reward += reward
+            rewards_list.append(reward)
             obs = result.get("observation", {})
             episode_done = result.get("done", False)
             
-            print(f"[STEP] step={step_count} action=choose_solution reward={reward:.2f}", flush=True)
+            error_msg = "null"
+            done_str = "true" if episode_done else "false"
+            print(f"[STEP] step={step_count} action=choose_solution reward={reward:.2f} done={done_str} error={error_msg}", flush=True)
             
-            if episode_done:
-                print("[INFO] Episode ended after solution", flush=True)
-            else:
+            if not episode_done:
                 # STEP 3: Escalation decision
                 step_count += 1
                 should_escalate = escalate_with_llm(message, severity)
@@ -197,58 +197,63 @@ def run_task(task_name: str) -> tuple:
                 
                 result = send_action(action)
                 reward = result.get("reward", 0.0)
-                total_reward += reward
+                rewards_list.append(reward)
                 obs = result.get("observation", {})
                 episode_done = result.get("done", False)
                 
-                print(f"[STEP] step={step_count} action=escalate_decision reward={reward:.2f}", flush=True)
+                error_msg = "null"
+                done_str = "true" if episode_done else "false"
+                print(f"[STEP] step={step_count} action=escalate_decision reward={reward:.2f} done={done_str} error={error_msg}", flush=True)
                 
-                if episode_done:
-                    print("[INFO] Episode ended after escalation", flush=True)
-                else:
+                if not episode_done:
                     # STEP 4: Close ticket
                     step_count += 1
                     action = {"action_type": "close_ticket"}
                     
                     result = send_action(action)
                     reward = result.get("reward", 0.0)
-                    total_reward += reward
+                    rewards_list.append(reward)
                     obs = result.get("observation", {})
                     episode_done = result.get("done", True)
                     
-                    print(f"[STEP] step={step_count} action=close_ticket reward={reward:.2f}", flush=True)
+                    error_msg = "null"
+                    done_str = "true"
+                    print(f"[STEP] step={step_count} action=close_ticket reward={reward:.2f} done={done_str} error={error_msg}", flush=True)
     
     except Exception as e:
         print(f"[ERROR] Task '{task_name}' error: {e}", flush=True)
+        error_msg = str(e)[:50]
     
-    # Convert total_reward to score strictly in range (0, 1) - never 0.0 or 1.0
-    # Clamp to [-1.2, 1.2] then normalize to (0.01, 0.99)
+    # Calculate final score strictly in (0, 1)
+    total_reward = sum(rewards_list)
     clamped = max(-1.2, min(1.2, total_reward))
     normalized = (clamped + 1.2) / 2.4  # Maps [-1.2, 1.2] to [0, 1]
-    # Ensure strictly between 0 and 1
     final_score = max(0.01, min(0.99, normalized))
     
-    return final_score, step_count
+    # Format rewards as comma-separated string
+    rewards_str = ",".join([f"{r:.2f}" for r in rewards_list])
+    
+    return final_score, step_count, rewards_str
 
 
 def main():
     """Run 3 customer support tasks."""
     
     tasks = [
-        "support_task_easy",
-        "support_task_medium", 
-        "support_task_hard"
+        "easy_task",
+        "medium_task", 
+        "hard_task"
     ]
     
     for task_name in tasks:
         # [START]
-        print(f"[START] task={task_name} model={MODEL_NAME}", flush=True)
+        print(f"[START] task={task_name} env=customer_support_env model={MODEL_NAME}", flush=True)
         
         # Run the task
-        final_score, step_count = run_task(task_name)
+        final_score, step_count, rewards_str = run_task(task_name)
         
         # [END]
-        print(f"[END] task={task_name} score={final_score:.2f} steps={step_count}", flush=True)
+        print(f"[END] success=true steps={step_count} score={final_score:.2f} rewards={rewards_str}", flush=True)
 
 
 if __name__ == "__main__":
