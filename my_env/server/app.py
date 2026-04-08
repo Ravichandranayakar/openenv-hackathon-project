@@ -28,7 +28,7 @@ except ImportError:
     from my_env.server.customer_support_environment import CustomerSupportEnvironment
     from my_env.server.gradio_ui import build_gradio_app
 
-# Create the app with OpenEnv's REST API endpoints (/reset, /step, /state, /health, /schema, etc.)
+# Initialize base OpenEnv app (provides /reset, /step, /state, etc.)
 app = create_app(
     CustomerSupportEnvironment,
     SupportAction,
@@ -37,7 +37,7 @@ app = create_app(
     max_concurrent_envs=1,
 )
 
-# Customize Swagger UI with project metadata
+# Basic API metadata for Swagger docs
 app.title = "Customer Support OpenEnv"
 app.version = "1.0.0"
 app.description = """🤖 Customer Support Environment – An AI training environment for handling support tickets.
@@ -92,7 +92,7 @@ routes_to_remove = [r for r in app.routes if hasattr(r, 'path') and r.path in ['
 for route in routes_to_remove:
     app.routes.remove(route)
 
-# Singleton environment instance
+# Single environment instance (shared across requests)
 _env_instance = None
 
 def get_environment() -> CustomerSupportEnvironment:
@@ -102,7 +102,7 @@ def get_environment() -> CustomerSupportEnvironment:
         _env_instance = CustomerSupportEnvironment()
     return _env_instance
 
-# Add custom routes that use singleton
+# Custom endpoints using the shared environment
 @app.post("/reset")
 async def reset_endpoint():
     """Reset environment and load a new ticket."""
@@ -120,7 +120,7 @@ async def step_endpoint(request_body: Dict[str, Any] = Body(..., embed=False)):
     env = get_environment()
     
     try:
-        # Handle both wrapped {"action": {...}} and direct {...} formats
+         # Accept both {"action": {...}} and direct payloads
         action_data = request_body
         if "action" in request_body and isinstance(request_body.get("action"), dict):
             action_data = request_body["action"]
@@ -176,7 +176,7 @@ async def state_endpoint():
             "current_ticket": None
         }
     else:
-        # Build observation from current state
+        # Rebuild observation from current state
         obs = env._observation(
             status="active",
             reward=0.0,
@@ -186,14 +186,14 @@ async def state_endpoint():
 
 
 # ============================================================
-# CORS & Gradio Setup
+# CORS + UI Setup
 # ============================================================
 
 from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for Spaces/demo
+    allow_origins=["*"], # Allow all origins for demo/testing
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
