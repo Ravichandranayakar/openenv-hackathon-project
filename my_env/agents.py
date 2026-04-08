@@ -45,7 +45,7 @@ class CurriculumLearningAgent:
         self.escalation_keywords = set()  # Learn escalation patterns
         
         # Action options
-        # VALID classifications: billing, account, bug, feature (NOT 'technical')
+        # VALID classifications: billing, account, bug, feature
         self.classifications = ['billing', 'account', 'bug', 'feature']
         
         # Category mapping to classification types (prevents mismatched actions)
