@@ -4,7 +4,7 @@
 What it does:
 - Learns to classify support tickets (billing, account, bug, feature)
 - Learns to pick the right solution for each problem
-- Learns WHEN to escalate issues (fraud, security, etc.)
+- Learns WHEN to escalate issues (fraud, security, emergency ,etc.)
 
 How it learns:
 1. EASY phase (episodes 1-150): Learn basics with simple tickets
