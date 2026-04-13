@@ -52,3 +52,19 @@ docker-compose.*.yml
 # Testing outputs
 .pytest_cache/
 test_output.txt
+
+# Project-specific outputs (development/testing)
+outputs/
+test_minimal_agent.py
+test_output.txt
+ANTI_CHEATING_MEASURES.md
+agent_learning_test.py
+check_tickets.py
+GETTING_STARTED.md
+STRUCTURE_DIAGNOSIS.txt
+test_cheating_comparison.py
+PROJECT_DATA_ANALYSIS.md
+
+test_agent_learning.py
+test/
+PRESENTATION_SCRIPT.md
