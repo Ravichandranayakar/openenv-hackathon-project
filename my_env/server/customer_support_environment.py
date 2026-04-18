@@ -12,7 +12,7 @@ import random
 from openenv.core.env_server.interfaces import Environment
 from openenv.core.env_server.types import State
 
-# Support both in-repo and standalone imports
+# Support both in-repo and standalone imports 
 try:
     # In-repo imports (my_env package structure)
     from ..models import SupportAction, SupportObservation
@@ -41,7 +41,7 @@ class CustomerSupportEnvironment(Environment):
     4. Closing tickets appropriately
     """
     
-    SUPPORTS_CONCURRENT_SESSIONS = False  # Single environment instance for all requests
+    SUPPORTS_CONCURRENT_SESSIONS = False  # Keep a single shared environment instance
     
     TASKS = {
         1: {"name": "Easy - Simple ticket classification", "difficulty": "easy"},
@@ -71,16 +71,16 @@ class CustomerSupportEnvironment(Environment):
         Returns:
             Initial observation with ticket details
         """
-        # Load random ticket based on task difficulty
+        # Pick a ticket based on current difficulty level
         self.current_ticket = get_random_ticket(self.current_task_id)
         
-        # Initialize state
+        # Reset episode state
         self._state = State(
             episode_id=str(uuid4()),
             step_count=0
         )
         
-        # Reset flags
+        # Clear all progress flags and counters
         self.step_count = 0
         self.total_reward = 0.0
         self.classification_done = False
@@ -137,7 +137,7 @@ class CustomerSupportEnvironment(Environment):
             if not hasattr(action, 'action_type'):
                 return self._error_observation("Action must have action_type field")
             
-            # Validate action_type is recognized
+            # Reject unknown actions early
             action_type = action.action_type
             if not self.resolver.is_valid_action_type(action_type):
                 return self._error_observation(
@@ -145,7 +145,7 @@ class CustomerSupportEnvironment(Environment):
                     f"Must be one of: {', '.join(self.resolver.VALID_ACTIONS)}"
                 )
             
-            # Increment step count
+            # Track step progression
             self._state.step_count += 1
             self.step_count += 1
             
