@@ -296,7 +296,7 @@ Environment is fully tested with baseline agent on all difficulty levels (Task 1
 - 5-10 episodes: Agent shows improvement
 - 20+ episodes: Agent masters task
 
-This is how real RL training works!
+This is how real RL training works! 
 
 ## Deployment
 
