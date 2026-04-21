@@ -1,0 +1,58 @@
+[
+  {
+    "id": 1,
+    "text": "I forgot my password and cannot log in to my account",
+    "category": "account",
+    "difficulty": "easy",
+    "expected_specialist": "account"
+  },
+  {
+    "id": 2,
+    "text": "I need to reset my security questions for two-factor authentication",
+    "category": "account",
+    "difficulty": "easy",
+    "expected_specialist": "account"
+  },
+  {
+    "id": 3,
+    "text": "I was charged twice for my subscription this month",
+    "category": "billing",
+    "difficulty": "medium",
+    "expected_specialist": "billing"
+  },
+  {
+    "id": 4,
+    "text": "My refund is still pending after 2 weeks",
+    "category": "billing",
+    "difficulty": "medium",
+    "expected_specialist": "billing"
+  },
+  {
+    "id": 5,
+    "text": "The API returns 500 errors when calling the payment endpoint",
+    "category": "technical",
+    "difficulty": "hard",
+    "expected_specialist": "technical"
+  },
+  {
+    "id": 6,
+    "text": "I'm getting timeouts when trying to upload files larger than 10MB",
+    "category": "technical",
+    "difficulty": "hard",
+    "expected_specialist": "technical"
+  },
+  {
+    "id": 7,
+    "text": "I was charged for a service I cancelled last month and need a refund",
+    "category": "billing",
+    "difficulty": "medium",
+    "expected_specialist": "billing"
+  },
+  {
+    "id": 8,
+    "text": "I can't update my email address in account settings",
+    "category": "account",
+    "difficulty": "easy",
+    "expected_specialist": "account"
+  }
+]
