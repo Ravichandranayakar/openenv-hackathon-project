@@ -246,7 +246,7 @@ For more details, see [API_USAGE_GUIDE.md](my_env/API_USAGE_GUIDE.md) for comple
 - `POST /tasks` - List available tasks
 - `POST /grader` - Grade episode (returns score 0.0-1.0)
 
-## Running Locally
+## Running Locally,
 
 **Prerequisites:** Python 3.10+
 
