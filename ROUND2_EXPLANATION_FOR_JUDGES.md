@@ -1,433 +1,122 @@
-# 🎯 Round 2 Project - Complete Explanation for Judges
+# Round 2 Project - Complete Explanation for Judges
 
-**Date**: April 21, 2026  
-**Status**: Scaffolding Complete | Phase 2 Starting  
-**Finale**: April 25-26, 2026 (Bangalore)
-
----
-
-## 📚 Table of Contents
-1. Problem Statement & Real-World Application
-2. Why Multi-Agent is Better
-3. System Architecture (Simple & Advanced)
-4. How Agents Work Together
-5. What We Built (Current Status)
-6. Next Steps Before Finale
-7. How Judges Will Evaluate Us
-8. Success Metrics
+**Date**: April 23, 2026 (Final Submission Ready)
+**Theme**: Multi-Agent Interactions
+**Stack**: OpenEnv + TRL GRPO + Unsloth (Official Hackathon Stack)
 
 ---
 
-## 1. 🎯 Problem Statement
-
-### The Real Problem
-**Customer support teams face this challenge:**
-- One support agent can't handle everything (billing + technical + account issues)
-- Tickets need to be **routed to the right specialist**
-- Currently: Human manually decides → **SLOW & EXPENSIVE**
-- We want: **AI agents automatically coordinate and route tickets**
-
-### Our Solution
-**A multi-agent system where:**
-- **Responder Agent** reads ticket & classifies it (billing? account? technical?)
-- **Coordinator Agent** decides which specialist to send it to
-- **Specialist Agents** handle domain-specific issues
-- **All agents learn** to work better together through reinforcement learning
+## Table of Contents
+1. The Problem: The "Generalist" AI Bottleneck
+2. Our Solution: The 4-Agent Negotiation Protocol
+3. Why This Matches the Prompt Perfectly
+4. System Architecture: How It Actually Works
+5. The 11-Signal Anti-Hacking Reward Model
+6. The Training Stack (TRL + Unsloth)
+7. What We Built (Codebase Overview)
 
 ---
 
-## 2. 💡 Why Multi-Agent is Better Than Single Agent
+## 1. The Problem: The "Generalist" AI Bottleneck
 
-### Single Agent (Round 1 - What we did before)
-```
-Customer → [One Agent] → Decision → ❌ Often wrong
-                         Tries to do everything
-                         Overloaded, poor accuracy
-```
+### The Status Quo
+Most companies implement customer support AI as a single, massive "Generalist" LLM. They prompt one model to be an expert in everything.
+**The result?** The model hallucinates on complex technical edge cases, or inappropriately handles sensitive billing disputes because it lacks deep, isolated context.
 
-### Multi-Agent (Round 2 - What we're doing now)
-```
-Customer Ticket
+### The Real Enterprise Reality
+In a real enterprise, support isn't handled by one omniscient person. A ticket is analyzed, routed, and handled by **specialized teams** (Billing, IT, Security).
+
+We hypothesized: *What if we simulated a specialized corporate hierarchy using multiple AI personas?*
+
+---
+
+## 2. Our Solution: The 4-Agent Negotiation Protocol
+
+Instead of a single bot, we built a **Multi-Agent Corporate Environment**. When a ticket enters the system, it triggers a 3-Phase State Machine:
+
+1. **The Bidding Phase (Competition)**: Our 3 specialist agents (Technical, Billing, Account) read the ticket simultaneously. Based on their system prompts, they mathematically calculate their confidence (0.0 to 1.0) on whether the ticket belongs in their domain. They submit "bids".
+2. **The Execution Phase (Resolution)**: The environment acts as an auctioneer. The agent with the highest valid bid "wins", takes ownership of the ticket, and proposes a solution against enterprise policy.
+3. **The Evaluation Phase (Quality Assurance)**: Our 4th agent, the **Manager**, reviews the specialist's prescribed solution. If the ticket is deemed too critical or the solution invalid, the Manager escalates to humans. Otherwise, the ticket closes.
+
+---
+
+## 3. Why This Matches the Round 2 prompt Perfectly
+
+The official hackathon rubric asks for: *"Environments for this theme involve cooperation, competition, negotiation, and coalition formation... driving theory-of-mind reasoning."*
+
+**Our Bidding Protocol is textbook Multi-Agent Negotiation.**
+- **Competition**: Agents compete for the highest bid to "win" the ticket.
+- **Cooperation**: Our reward matrix contains a "Team Bonus" (awarded only if the ticket resolves successfully) and a "Team Penalty" (if the wrong agent wins and ruins the resolution, everyone loses points). 
+- **Theory of Mind**: Agents must learn *not* to bid 1.0 on every ticket. The Technical agent must learn to recognize a Billing issue, realize it will fail the Execution phase, and strategically bid 0.1 to let the Billing agent handle it and secure the Team Bonus.
+
+---
+
+## 4. System Architecture: How It Actually Works
+
+```text
+Customer Support Ticket
+"I was charged twice AND my app keeps crashing"
      ↓
-[Responder] → "This is a billing issue" (70% confident)
+  [ Open Environment Broker ]
      ↓
-[Coordinator] → "Send to billing specialist" (learns from Responder's confidence)
+  (Bidding Phase Triggered)
+  - Technical Agent Bids: 0.85
+  - Billing Agent Bids:  0.95
+  - Account Agent Bids:  0.10
      ↓
-[Specialist_Billing] → "Refund customer $50" (expert in billing)
+ [ Billing Agent Wins Auction ]
      ↓
-✅ Better decision, faster routing, specialists focus on their domain
-```
-
-### Real-World Examples
-1. **Amazon**: Ticket → Warehouse Team OR Returns Team OR Payments Team
-2. **Slack**: Technical Issues → Engineering Team, Billing → Finance, Account → Support
-3. **Banks**: Fraud Detection → Fraud Team, Compliance → Legal, Account → Retail Banking
-
----
-
-## 3. 🏗️ System Architecture (How It Actually Works)
-
-### Simple Version (For Judges - 1 min explanation)
-
-```
-┌─────────────────────────────────────────┐
-│      Customer Support Ticket            │
-│   "I was charged twice for my sub"      │
-└──────────────┬──────────────────────────┘
-               ↓
-        ┌──────────────┐
-        │  Responder   │  Reads ticket
-        │   Agent      │  Says: "Billing issue (85% sure)"
-        └──────┬───────┘
-               ↓
-        ┌──────────────┐
-        │ Coordinator  │  Smart router
-        │   Agent      │  Says: "Go to Billing Specialist"
-        └──────┬───────┘
-               ↓
-        ┌──────────────┐
-        │  Specialist  │  Expert handler
-        │    Agent     │  Says: "Refund $50"
-        └──────┬───────┘
-               ↓
-        ┌──────────────┐
-        │   Customer   │  ✅ Issue resolved!
-        └──────────────┘
-```
-
-### Technical Version (For Technical Judges)
-
-**Components:**
-1. **TicketEncoder** (Transformer - distilbert)
-   - Converts ticket text → 768-dim embedding
-   - Pre-trained on language, frozen for speed
-
-2. **ResponderAgent** (PyTorch Neural Network)
-   - Input: Ticket text embedding
-   - Output: (classification, solution, confidence)
-   - Architecture: distilbert + classification head (4 classes)
-
-3. **CoordinatorDQN** (Deep Q-Network - Reinforcement Learning)
-   - Input: Classification + confidence + ticket embedding
-   - Output: Routing decision (5 actions: billing, account, technical, specialist, escalate)
-   - Learns which routing is correct over time
-
-4. **SpecialistAgents** (Domain Experts - 3 types)
-   - Each expert in one domain (billing, account, technical)
-   - Takes routed ticket → provides expert solution
-
----
-
-## 4. 🤝 How Agents Learn to Work Together
-
-### Training Loop (What happens during training)
-
-**Episode 1-50 (Easy tickets):**
-```
-Ticket: "I forgot my password"
-→ Responder: "Account issue (95% sure)"
-→ Coordinator: "Route to Account Specialist"
-→ Specialist_Account: "Reset password"
-→ ✅ CORRECT! Reward +1.0
-→ DQN learns: "When classifier says account + high confidence → route to account"
-```
-
-**Episode 51-150 (Medium tickets):**
-```
-Ticket: "I was charged twice AND can't log in"
-→ Responder: "Mixed issue (70% sure)"
-→ Coordinator: "Hmm, uncertain... Let me choose"
-→ If chooses Billing: "Refund issue" ✅
-→ If chooses Account: "Wrong, should be billing" ❌
-→ DQN learns: "High uncertainty → maybe escalate or route to main specialist"
-```
-
-**Episode 151+ (Hard tickets):**
-```
-Ticket: "API throws 500 errors, refuses payment, account locked"
-→ Responder: "Technical? Billing? Account? (50% sure)"
-→ Coordinator: "This needs escalation to human OR multiple specialists"
-→ System learns: "Very complex → escalate"
-```
-
-**Key Learning:**
-- Agents don't hardcode rules
-- They learn from **thousands of examples**
-- Coordinator learns when **Responder is confident** vs **uncertain**
-- System gets better = higher rewards = judges impressed!
-
----
-
-## 5. ✅ What We Built (Current Status - Phase 1 Complete)
-
-### ✅ DONE - PyTorch Scaffolding (23 files, 2000+ LOC)
-
-```
-✅ Agents (6 files)
-   ├─ base_agent.py (Interface for all agents)
-   ├─ responder_agent.py (Classification agent)
-   ├─ coordinator_agent.py (Routing/DQN agent)
-   ├─ specialist_agent.py (Domain expert agents)
-   ├─ multi_agent_system.py (Orchestrator)
-   └─ __init__.py
-
-✅ Models (4 files)
-   ├─ transformer_encoder.py (distilbert encoder)
-   ├─ dqn_network.py (Coordinator DQN network)
-   ├─ embeddings.py (Embedding utilities)
-   └─ __init__.py
-
-✅ Training (5 files)
-   ├─ trainer.py (Training loop manager)
-   ├─ replay_buffer.py (Experience replay)
-   ├─ curriculum.py (Difficulty progression)
-   ├─ callbacks.py (Logging hooks)
-   └─ __init__.py
-
-✅ Inference (2 files)
-   ├─ inference_engine.py (Production inference)
-   └─ __init__.py
-
-✅ Evaluation (4 files)
-   ├─ metrics.py (Cooperation metrics)
-   ├─ evaluator.py (Episode evaluation)
-   ├─ benchmarks.py (Performance benchmarks)
-   └─ __init__.py
-
-✅ Utils (2 files)
-   ├─ logging_utils.py (Structured logging)
-   └─ __init__.py
-
-✅ Scripts (3 executable files)
-   ├─ train_multi_agent.py (Main training script)
-   ├─ evaluate.py (Evaluation script)
-   └─ inference_demo.py (Demo inference)
-
-✅ Config (1 consolidated file)
-   └─ config.yaml (All hyperparameters)
-```
-
-### Lines of Code by Component
-- **Agents**: ~500 LOC (base, responder, coordinator, specialist, system)
-- **Models**: ~300 LOC (encoders, DQN, embeddings)
-- **Training**: ~400 LOC (trainer, replay buffer, curriculum, callbacks)
-- **Inference**: ~100 LOC (inference engine)
-- **Evaluation**: ~300 LOC (metrics, evaluator, benchmarks)
-- **Scripts**: ~200 LOC (train, evaluate, demo)
-- **Total**: ~1800 LOC of high-quality PyTorch code ✅
-
----
-
-## 6. ⏭️ Next Steps - Phase 2 (This Week - Apr 21-24)
-
-### Phase 2A: Environment Integration (Apr 21-22)
-**What:** Connect PyTorch agents to OpenEnv environment
-```python
-# Current: Agents work in isolation
-agent_result = responder.forward(ticket)
-
-# Goal: Agents work with environment
-observation = env.reset()
-action = multi_agent_system.forward(observation)
-next_obs, reward, done, info = env.step(action)
-```
-
-**Tasks:**
-- [ ] Refactor `my_env/server/customer_support_environment.py` for multi-agent
-- [ ] Add multi-agent endpoints to FastAPI server
-- [ ] Create training loop that uses environment
-
-### Phase 2B: Training Implementation (Apr 22-23)
-**What:** Actually train the agents
-```python
-for episode in range(500):
-    observation = env.reset()
-    multi_agent_system.reset()
-    
-    for step in range(10):
-        # Agents decide
-        action = multi_agent_system.forward(observation)
-        
-        # Environment executes
-        next_obs, reward, done, info = env.step(action)
-        
-        # Agents learn
-        replay_buffer.add(experience)
-        train_step()  # Update neural networks
-```
-
-**Targets:**
-- Train 500 episodes
-- Routing accuracy: 85%+
-- Episode reward: 0.6+
-- Latency: <200ms per decision
-
-### Phase 2C: Demo & Presentation (Apr 24)
-**What:** Create final demo for judges
-- Run trained models on sample tickets
-- Generate metrics plots (reward curves, accuracy)
-- Record 2-min video showing agent coordination
-
----
-
-## 7. 🏆 How Judges Will Evaluate
-
-### Criterion 1: **Innovation (40%)**
-**Judges ask:** "Is this novel and creative?"
-
-**Our advantage:**
-- ✅ Multi-agent coordination is more novel than single agent
-- ✅ Shows emergent behavior (agents learn to communicate)
-- ✅ Production-ready architecture (industry pattern)
-
-**Evidence we show:**
-- Agent communication logs (how agents talk to each other)
-- Routing accuracy improving (learning curve)
-- Before/after: random routing vs learned routing
-
----
-
-### Criterion 2: **Storytelling (30%)**
-**Judges ask:** "Can you explain this clearly in 3 minutes?"
-
-**Our story:**
-1. **Problem:** Single AI agent struggles with diverse support issues
-2. **Insight:** Real teams have specialists (billing expert, tech expert, account expert)
-3. **Solution:** Create multi-agent system that learns to coordinate
-4. **Demo:** Show agents learning to route correctly
-5. **Impact:** Reduces manual escalations, faster resolution
-
-**Visuals we show:**
-- Communication diagram (how agents talk)
-- Reward curves (agents improving)
-- Accuracy metrics (routing getting better)
-
----
-
-### Criterion 3: **Showing Improvement (20%)**
-**Judges ask:** "Does your system actually improve?"
-
-**Metrics we track:**
-- Episode reward over time (should go up)
-- Routing accuracy (should improve)
-- Escalation rate (should decrease)
-- Communication efficiency (messages per resolution)
-
-**Graph example:**
-```
-Reward
-  ↑
-  │     ╱╱╱╱╱
-  │   ╱╱    
-  │ ╱╱      ← Model Learning
-  │╱
-  └─────────────→ Episodes
-  
-  Starts low (random routing)
-  Ends high (learned routing)
+ Billing Agent Proposes: "Refund duplicate charge"
+     ↓
+ [ Manager Agent Reviews ]
+ Manager Decision: "Approved, Close Ticket"
+     ↓
+ [ Environment Computes Rewards ]
+  Result: Team Success (+1.0)
 ```
 
 ---
 
-### Criterion 4: **Technical Quality (10%)**
-**Judges ask:** "Is the code professional?"
+## 5. The 11-Signal Anti-Hacking Reward Model
 
-**Our checklist:**
-- ✅ Type hints on all functions
-- ✅ Docstrings (Google style)
-- ✅ PEP8 compliant code
-- ✅ Error handling
-- ✅ Structured logging
-- ✅ Reproducible (Docker ready)
+As per OpenEnv principles, a single reward function is susceptible to reward hacking (e.g., an agent always bidding 1.0 just to maximize exposure). We implemented **11 Independent Metrics** across the 3 phases to mathematically prevent cheating:
 
----
+**Positive Rewards (The Carrots):**
+1. Correct Specialist Won (+0.2)
+2. Accurate Solution Generated (+0.2)
+3. Confidence Calibration Bonus (+0.1)
+4. Valid JSON Formatting (+0.05)
+5. **Team Synergy Bonus (+0.2)** *(Only applied if the Manager approves the final close)*
 
-## 8. 📊 Success Metrics (What "Good" Looks Like)
-
-| Metric | Target | Why |
-|--------|--------|-----|
-| **Routing Accuracy** | 85%+ | Agents learning correct routing |
-| **Avg Episode Reward** | 0.6+ | Model performing well |
-| **Communication Efficiency** | <3 hops | Agents not over-communicating |
-| **Code Quality** | 0 lint errors | Professional code |
-| **Inference Latency** | <200ms | Production-ready |
-| **Reproducibility** | Runs in Docker | Can demo reliably on-site |
+**Anti-Hacking Penalties (The Sticks):**
+6. Wrong Specialist Won (-0.2)
+7. Invalid Policy Solution (-0.2)
+8. **False Confidence Penalty (-0.1)** *(Agent bid > 0.8 but got the solution wrong)*
+9. Team Failure Penalty (-0.1)
+10. Out-of-bounds Bid (-0.05)
+11. **Timeout Penalty (-0.15)** *(Agents looping without resolution)*
 
 ---
 
-## 📋 Summary for Judges (What We'll Say)
+## 6. The Training Stack (TRL + Unsloth)
 
-### 30-Second Pitch
-> "We built a multi-agent reinforcement learning system where AI agents learn to specialize and coordinate like a real customer support team. Our Responder classifies tickets, the Coordinator routes to specialists, and Specialist agents solve domain-specific issues. Agents learn from experience - the system improves from 50% to 85%+ accuracy. This mirrors how Amazon, Slack, and enterprise support teams actually work."
+To actually train these agents to optimize this 11-signal matrix, we use **Transformers Reinforcement Learning (TRL) - GRPO.**
 
-### 3-Minute Walkthrough
-1. **Problem** (30 sec): Single AI agents fail on diverse issues
-2. **Architecture** (60 sec): Show diagram of 3-agent system
-3. **Demo** (60 sec): Run inference on sample tickets, show routing decision
-4. **Results** (30 sec): Show metrics - accuracy improving, rewards increasing
+Rather than loading 4 separate neural networks into GPU memory, we load **a single Llama-3.2-1B-Instruct backbone**, optimized using **Unsloth 4-bit Quantization**.
+We instantiate the 4 agents dynamically by altering the system prompt context window in the RL trajectory loop.
 
-### 2-Minute Video
-- Agent coordination in action
-- Routing getting smarter over time
-- Real-world use cases (Amazon, Slack, banks)
-- Final metrics dashboard
+The GRPO algorithm measures the expected reward of the agents' bids and solutions against the Environment's Oracle ground-truth. Over 500 episodes, the underlying weights of the LLM are updated to maximize the total Team Synergy score, naturally teaching the underlying AI the boundaries of the 4 specializations.
 
 ---
 
-## 🎓 Key Insight for Judges
+## 7. What We Built (Codebase Overview)
 
-**Why multi-agent?**
-- **Single agent**: Try to memorize all patterns → Fails on new issues
-- **Multi-agent**: Each agent specializes + learns when to delegate → Generalizes better
-- **Real teams work this way**: No one person handles everything
-- **This system mirrors reality** → More applicable to real-world problems
+Our repository represents a fully production-ready OpenEnv enterprise architecture:
 
----
+- `multi_agent_negotiation_environment.py`: The core OpenEnv FastApi server implementing the strict 3-phase state machine and Oracle evaluation logic.
+- `app.py`: The HTTP wrapper exposing 11 distinct endpoints (including manual Live Metrics routing).
+- `gradio_ui.py`: A custom front-end command center allowing judges to manually "play" as any of the 4 agents and test the bidding protocol in real time.
+- `trl_multi_agent_trainer.py`: The primary RL execution loop that wraps TRL and sequences the agent fine-tuning.
+- `data/tickets.py`: 45 hand-crafted edge-case support scenarios designed specifically to confuse naive LLMs.
 
-## ✨ What Makes This "Production-Ready"
-
-1. **Type Safety**: All functions have type hints
-2. **Logging**: Every decision is logged for audit trail
-3. **Scalability**: Can add new specialists without retraining
-4. **Monitoring**: Metrics for accuracy, routing, latency
-5. **Reproducibility**: Docker container ensures same results on-site
-6. **Documentation**: Clear architecture, easy to understand
-
----
-
-## 🚀 Next Action
-
-1. **Apr 21-22**: Integrate PyTorch agents with OpenEnv environment
-2. **Apr 22-23**: Run training (500 episodes)
-3. **Apr 24**: Record demo video, finalize metrics
-4. **Apr 25-26**: Present to judges at Bangalore event
-
-**You are here** ↓
-```
-Phase 1: Scaffolding ✅ DONE
-Phase 2: Integration ⏭️ STARTING NOW
-Phase 3: Training ⏭️ NEXT
-Phase 4: Demo ⏭️ FINALE
-```
-
----
-
-## Questions Judges Might Ask (& How We Answer)
-
-**Q: "Why multi-agent and not bigger single agent?"**
-A: Real teams have specialists. Multi-agent mirrors this. Also: easier to add new specialists, better generalization, emergent coordination behavior.
-
-**Q: "How do agents communicate?"**
-A: Standardized message format (JSON). Coordinator reads Responder's confidence and classification. Specialist communicates back solutions. All logged.
-
-**Q: "What if routing is wrong?"**
-A: DQN learns from mistakes. If Responder is confident but wrong → Coordinator learns not to trust that signal. System improves over time.
-
-**Q: "Can this scale to 1000 specialists?"**
-A: Yes! Each specialist is small (~20M params). Add routing rule in Coordinator. Total <200M params for system.
-
-**Q: "How long to train?"**
-A: 500 episodes = ~2-5 hours on GPU. We'll train on-site for judges.
-
----
-
+**Ready for Deployment.** We've packaged the entire inference architecture in a Docker container ready for HuggingFace Spaces.

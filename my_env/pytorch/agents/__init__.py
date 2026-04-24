@@ -7,9 +7,9 @@ from my_env.pytorch.agents.specialist_agent import SpecialistAgent
 from my_env.pytorch.agents.multi_agent_system import MultiAgentSystem
 
 __all__ = [
-    "BaseAgent",
-    "ResponderAgent",
-    "CoordinatorAgent",
-    "SpecialistAgent",
-    "MultiAgentSystem",
+  "BaseAgent",
+  "ResponderAgent",
+  "CoordinatorAgent",
+  "SpecialistAgent",
+  "MultiAgentSystem",
 ]

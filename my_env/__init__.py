@@ -2,12 +2,12 @@
 
 Clean API for agents and reviewers:
 
-    from my_env import SupportAction, SupportObservation, CustomerSupportEnvironment
-    
-    env = CustomerSupportEnvironment()
-    obs = env.reset()
-    action = SupportAction(action_type="classify_issue", classification="bug")
-    obs = env.step(action)
+  from my_env import SupportAction, SupportObservation, CustomerSupportEnvironment
+  
+  env = CustomerSupportEnvironment()
+  obs = env.reset()
+  action = SupportAction(action_type="classify_issue", classification="bug")
+  obs = env.step(action)
 """
 
 # Type definitions (from root-level per OpenEnv spec)
@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 _root = Path(__file__).parent.parent
 if str(_root) not in sys.path:
-    sys.path.insert(0, str(_root))
+  sys.path.insert(0, str(_root))
 
 from models import SupportAction, SupportObservation
 
@@ -30,13 +30,13 @@ from my_env.server.logic.ticket_resolver import TicketResolver, RewardCalculator
 from client import CustomerSupportEnv
 
 __all__ = [
-    "SupportAction",
-    "SupportObservation",
-    "CustomerSupportEnvironment",
-    "CustomerSupportEnv",
-    "TICKETS",
-    "RESOLUTION_POLICIES",
-    "get_random_ticket",
-    "TicketResolver",
-    "RewardCalculator",
+  "SupportAction",
+  "SupportObservation",
+  "CustomerSupportEnvironment",
+  "CustomerSupportEnv",
+  "TICKETS",
+  "RESOLUTION_POLICIES",
+  "get_random_ticket",
+  "TicketResolver",
+  "RewardCalculator",
 ]

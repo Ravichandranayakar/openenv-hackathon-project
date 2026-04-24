@@ -1,13 +1,11 @@
-"""Training infrastructure for multi-agent learning."""
+"""TRL GRPO Training for LLM-based Support Ticket Routing.
 
-from my_env.pytorch.training.trainer import MultiAgentTrainer
-from my_env.pytorch.training.replay_buffer import MultiAgentReplayBuffer
-from my_env.pytorch.training.curriculum import CurriculumScheduler
-from my_env.pytorch.training.callbacks import TrainingCallback
+Round 2: LLM Training with TRL + Unsloth stack
 
-__all__ = [
-    "MultiAgentTrainer",
-    "MultiAgentReplayBuffer",
-    "CurriculumScheduler",
-    "TrainingCallback",
-]
+Two versions available:
+- trl_grpo_trainer_cpu: CPU test version (5 episodes, local validation)
+- trl_grpo_trainer_gpu: GPU production version (500 episodes, on-site)
+"""
+
+__all__ = []
+

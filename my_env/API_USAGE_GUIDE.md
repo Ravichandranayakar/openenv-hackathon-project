@@ -1,13 +1,20 @@
-# FastAPI Server Usage Guide
+# FastAPI Server & Multi-Agent API Usage Guide
 
 ## Overview
-This guide explains how to interact with the Customer Support OpenEnv FastAPI server. The server provides REST endpoints for training an AI agent to handle customer support tickets.
+This guide explains how to interact with the **Customer Support Multi-Agent OpenEnv** FastAPI server. The server provides REST endpoints for:
+- **OpenEnv Core**: Environment reset/step/state for RL training
+- **Multi-Agent System**: Agent bidding, negotiation, and resolution
+- **Monitoring & Metrics**: Agent status, performance tracking, and configuration inspection
+- **Specialization Management**: View agent roles and training details
 
 ## Table of Contents
 1. [Starting the Server](#starting-the-server)
-2. [API Endpoints](#api-endpoints)
-3. [Complete Episode Workflow](#complete-episode-workflow)
-4. [Detailed Examples](#detailed-examples)
+2. [Core OpenEnv Endpoints](#core-openenv-endpoints)
+3. [Multi-Agent Negotiation Endpoints](#multi-agent-negotiation-endpoints)
+4. [Agent Monitoring & Metrics](#agent-monitoring--metrics)
+5. [Complete Episode Workflow](#complete-episode-workflow)
+6. [Detailed Examples](#detailed-examples)
+7. [Python Client Examples](#python-client-examples)
 
 ---
 
@@ -33,7 +40,9 @@ docker run -p 8000:8000 customer-support-env
 
 ---
 
-## API Endpoints
+## Core OpenEnv Endpoints
+
+These endpoints implement the standard OpenEnv interface for RL training loops.
 
 ### 1. **GET /health** - Health Check
 Check if the server is running.
@@ -52,8 +61,8 @@ curl -X GET "http://127.0.0.1:8000/health"
 
 ---
 
-### 2. **POST /reset** - Start New Episode
-Load a random customer support ticket and initialize environment.
+### 2. **POST /reset** - Initialize New Episode
+Load a random customer support ticket and initialize a new negotiation episode.
 
 **Request:**
 ```bash
@@ -66,14 +75,15 @@ curl -X POST "http://127.0.0.1:8000/reset" \
 ```json
 {
   "observation": {
+    "ticket_id": "TICKET-12345",
     "message": "I was charged twice for my subscription this month. Please help!",
     "severity": "high",
-    "task_id": 1,
-    "task_name": "Easy - Simple ticket classification",
+    "category": "billing",
     "status": "open",
+    "phase": "bidding",
     "reward": 0.0,
     "done": false,
-    "resolution_message": "Ticket loaded. Please classify the issue type."
+    "resolution_message": "New episode initialized. Waiting for agent bids..."
   },
   "reward": 0.0,
   "done": false
@@ -82,8 +92,8 @@ curl -X POST "http://127.0.0.1:8000/reset" \
 
 ---
 
-### 3. **POST /step** - Execute Action
-Send an action to the environment and get observation + reward.
+### 3. **POST /step** - Submit Agent Action
+Execute an action in the current negotiation phase.
 
 **Generic Format:**
 ```bash
@@ -91,55 +101,365 @@ curl -X POST "http://127.0.0.1:8000/step" \
   -H "Content-Type: application/json" \
   -d '{
     "action": {
-      "action_type": "ACTION_TYPE",
-      "... action parameters ..."
+      "phase": "CURRENT_PHASE",
+      "agent": "AGENT_NAME",
+      "... phase-specific params ..."
     }
   }'
 ```
 
 ---
 
+### 4. **GET /state** - Get Current Episode State
+Retrieve the current state of the ongoing negotiation episode.
+
+**Request:**
+```bash
+curl -X GET "http://127.0.0.1:8000/state"
+```
+
+**Response (200 OK):**
+```json
+{
+  "episode_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "step_count": 2,
+  "current_phase": "bidding",
+  "ticket_id": "TICKET-12345",
+  "agent_bids": [
+    {"agent": "technical", "confidence": 0.85, "timestamp": 1713960000},
+    {"agent": "billing", "confidence": 0.92, "timestamp": 1713960001}
+  ],
+  "team_score": 0.0,
+  "done": false
+}
+```
+
+---
+
+### 5. **GET /schema** - Get Action/Observation Schemas
+Get JSON schemas for valid actions and observations.
+
+**Request:**
+```bash
+curl -X GET "http://127.0.0.1:8000/schema"
+```
+
+**Response (200 OK):**
+```json
+{
+  "action_schema": {
+    "type": "object",
+    "properties": {
+      "phase": {"type": "string"},
+      "agent": {"type": "string"},
+      "confidence": {"type": "number"},
+      "solution": {"type": "string"}
+    }
+  },
+  "observation_schema": {
+    "type": "object",
+    "properties": {
+      "ticket_id": {"type": "string"},
+      "message": {"type": "string"},
+      "phase": {"type": "string"},
+      "reward": {"type": "number"},
+      "done": {"type": "boolean"}
+    }
+  }
+}
+```
+
+---
+
+## Multi-Agent Negotiation Endpoints
+
+These endpoints provide visibility into the multi-agent negotiation system.
+
+### 6. **GET /api/agents/status** - Agent Status (ROUND 2)
+Get status of all 4 specialized agents.
+
+**Request:**
+```bash
+curl -X GET "http://127.0.0.1:8000/api/agents/status"
+```
+
+**Response (200 OK):**
+```json
+{
+  "agents": [
+    {
+      "name": "technical",
+      "status": "ready",
+      "model": "unsloth/Llama-3.2-1B-Instruct",
+      "mode": "inference",
+      "role": "Technical Support Specialist"
+    },
+    {
+      "name": "billing",
+      "status": "ready",
+      "model": "unsloth/Llama-3.2-1B-Instruct",
+      "mode": "inference",
+      "role": "Billing Specialist"
+    },
+    {
+      "name": "account",
+      "status": "ready",
+      "model": "unsloth/Llama-3.2-1B-Instruct",
+      "mode": "inference",
+      "role": "Account Manager"
+    },
+    {
+      "name": "manager",
+      "status": "ready",
+      "model": "unsloth/Llama-3.2-1B-Instruct",
+      "mode": "inference",
+      "role": "Quality Manager"
+    }
+  ]
+}
+```
+
+---
+
+### 7. **GET /api/agents/metrics** - Agent Performance Metrics (ROUND 2)
+Get training and performance metrics for each agent.
+
+**Request:**
+```bash
+curl -X GET "http://127.0.0.1:8000/api/agents/metrics"
+```
+
+**Response (200 OK):**
+```json
+{
+  "metrics": [
+    {
+      "agent": "technical",
+      "episodes": 156,
+      "avg_reward": 0.78,
+      "success_rate": 0.82,
+      "avg_confidence": 0.73,
+      "training_status": "completed"
+    },
+    {
+      "agent": "billing",
+      "episodes": 142,
+      "avg_reward": 0.81,
+      "success_rate": 0.87,
+      "avg_confidence": 0.75,
+      "training_status": "completed"
+    },
+    {
+      "agent": "account",
+      "episodes": 138,
+      "avg_reward": 0.76,
+      "success_rate": 0.79,
+      "avg_confidence": 0.71,
+      "training_status": "completed"
+    },
+    {
+      "agent": "manager",
+      "episodes": 145,
+      "avg_reward": 0.79,
+      "success_rate": 0.85,
+      "avg_confidence": 0.74,
+      "training_status": "completed"
+    }
+  ]
+}
+```
+
+---
+
+### 8. **GET /api/agents/{agent_name}/specialization** - Agent Specialization (ROUND 2)
+Get detailed specialization info for a specific agent.
+
+**Request:**
+```bash
+curl -X GET "http://127.0.0.1:8000/api/agents/billing/specialization"
+```
+
+**Response (200 OK):**
+```json
+{
+  "agent_name": "billing",
+  "specializes_in": [
+    "Payment issues",
+    "Subscription management",
+    "Refund processing",
+    "Fraud detection"
+  ],
+  "model": "unsloth/Llama-3.2-1B-Instruct",
+  "training_examples": 100,
+  "training_method": "TRL GRPO"
+}
+```
+
+---
+
+### 9. **POST /api/agents/bid** - Manual Bid Submission (ROUND 2)
+Manually submit a bid for testing purposes (bypasses agent inference).
+
+**Request:**
+```bash
+curl -X POST "http://127.0.0.1:8000/api/agents/bid" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_name": "billing",
+    "confidence": 0.92,
+    "reasoning": "High confidence in duplicate charge resolution"
+  }'
+```
+
+**Response (200 OK):**
+```json
+{
+  "agent": "billing",
+  "confidence": 0.92,
+  "reasoning": "High confidence in duplicate charge resolution",
+  "timestamp": "2026-04-23T10:30:45.123456",
+  "status": "bid_recorded"
+}
+```
+
+---
+
+### 10. **GET /api/episodes/{episode_id}/agent-decisions** - Episode Details (ROUND 2)
+Get detailed per-agent decisions and rewards for a specific episode.
+
+**Request:**
+```bash
+curl -X GET "http://127.0.0.1:8000/api/episodes/ep-001/agent-decisions"
+```
+
+**Response (200 OK):**
+```json
+{
+  "episode_id": "ep-001",
+  "ticket": {
+    "id": "TICKET-12345",
+    "message": "I was charged twice",
+    "severity": "high",
+    "category": "billing"
+  },
+  "phase_1_bidding": {
+    "technical": {"confidence": 0.65, "reward": -0.1},
+    "billing": {"confidence": 0.92, "reward": 0.2},
+    "account": {"confidence": 0.40, "reward": -0.2},
+    "manager": {"confidence": 0.78, "reward": 0.1}
+  },
+  "phase_2_execution": {
+    "winner": "billing",
+    "solution": "refund_duplicate_charge",
+    "reward": 0.2
+  },
+  "phase_3_resolution": {
+    "manager_decision": "close",
+    "quality_reward": 0.2,
+    "team_success_bonus": 0.2
+  },
+  "total_episode_reward": 1.0,
+  "anti_hacking_safeguards_triggered": []
+}
+```
+
+---
+
+### 11. **GET /api/environment/config** - Environment Configuration (ROUND 2)
+Get the 11-signal reward structure and anti-hacking safeguards.
+
+**Request:**
+```bash
+curl -X GET "http://127.0.0.1:8000/api/environment/config"
+```
+
+**Response (200 OK):**
+```json
+{
+  "reward_functions": {
+    "positive_signals": [
+      {"name": "correct_specialist_bid", "value": 0.2, "description": "Agent bid for correct specialist"},
+      {"name": "correct_solution", "value": 0.2, "description": "Solution matches ground truth"},
+      {"name": "appropriate_confidence", "value": 0.1, "description": "Confidence score calibrated well"},
+      {"name": "solution_format", "value": 0.05, "description": "Solution in correct format"},
+      {"name": "team_success_bonus", "value": 0.2, "description": "Team successfully resolved ticket"}
+    ],
+    "negative_signals": [
+      {"name": "wrong_specialist", "value": -0.2, "description": "Non-specialist agent won bid"},
+      {"name": "wrong_solution", "value": -0.2, "description": "Solution does not match ground truth"},
+      {"name": "overconfident", "value": -0.1, "description": "Agent bid > actual accuracy"},
+      {"name": "team_failure", "value": -0.1, "description": "Team failed to resolve"},
+      {"name": "invalid_bid", "value": -0.05, "description": "Bid outside valid range [0,1]"},
+      {"name": "timeout_penalty", "value": -0.15, "description": "Episode exceeded MAX_STEPS"}
+    ]
+  },
+  "anti_hacking_safeguards": {
+    "bid_range_validation": "[0.0, 1.0] with penalty for violations",
+    "bid_history_logging": "All bids logged with timestamp, agent, confidence, ticket_id",
+    "max_steps_per_episode": 10,
+    "invalid_bid_penalty": -0.05
+  }
+}
+```
+
+---
+
 ## Complete Episode Workflow
 
-An episode has **4 mandatory steps** to complete successfully:
+An episode has **3 mandatory phases**. Multiple agents act within each phase:
 
 ```
-┌─────────┐
-│  RESET  │  Load random ticket
-└────┬────┘
+┌──────────────────────────┐
+│  PHASE 0: RESET          │  Load random ticket
+└────┬─────────────────────┘
      │
      ▼
-┌─────────────────────────────┐
-│ STEP 1: CLASSIFY ISSUE      │  Identify issue type
-└────┬────────────────────────┘
-     │ Reward: 0.2
+┌──────────────────────────────────────────────────┐
+│  PHASE 1: BIDDING                                │
+│  All 4 agents submit confidence (0.0 - 1.0)     │
+│  Rewards computed for calibration accuracy       │
+│  Winner = agent with highest valid bid           │
+└────┬─────────────────────────────────────────────┘
+     │ Reward: +0.2 (correct specialist)
+     │         -0.2 (wrong specialist)
+     │         +0.1 (appropriate confidence)
      ▼
-┌─────────────────────────────┐
-│ STEP 2: CHOOSE SOLUTION     │  Pick category & solution
-└────┬────────────────────────┘
-     │ Reward: 0.3
+┌──────────────────────────────────────────────────┐
+│  PHASE 2: EXECUTION                              │
+│  Winning agent proposes solution                 │
+│  Evaluated against ground truth policy matrix    │
+└────┬─────────────────────────────────────────────┘
+     │ Reward: +0.2 (correct solution)
+     │         -0.2 (wrong solution)
+     │         +0.05 (format correct)
      ▼
-┌─────────────────────────────┐
-│ STEP 3: ESCALATION DECISION │  Decide: escalate or close?
-└────┬────────────────────────┘
-     │ Reward: 0.3
-     ▼
-┌─────────────────────────────┐
-│ STEP 4: CLOSE TICKET        │  Finalize episode
-└────┬────────────────────────┘
-     │ Reward: 0.2
+┌──────────────────────────────────────────────────┐
+│  PHASE 3: RESOLUTION                             │
+│  Manager agent evaluates & makes final decision  │
+│  Team success bonus applied if ticket resolved   │
+└────┬─────────────────────────────────────────────┘
+     │ Reward: +0.2 (team success bonus)
+     │         -0.1 (team failure penalty)
+     │         -0.15 (timeout)
      ▼
   DONE=true
-  TOTAL SCORE: 1.0
+  TOTAL EPISODE REWARD: 0.5 - 1.0 (varies by agent decisions)
 ```
+
+### 11-Signal Reward Design
+
+The negotiation episode uses **11 independent reward signals** to prevent reward hacking:
+- **5 positive signals**: Incentivize correct decisions
+- **6 negative signals**: Penalize poor decisions or violations
+- **Anti-gaming**: Bid validation, history logging, timeout limits
 
 ---
 
 ## Detailed Examples
 
-### Complete Example: Full Episode (4 Steps)
+### Complete Example: Full Multi-Agent Negotiation Episode
 
-#### **Step 0: Reset Environment**
+#### **Phase 0: Reset Environment**
 ```bash
 curl -X POST "http://127.0.0.1:8000/reset" \
   -H "Content-Type: application/json" \
@@ -150,11 +470,14 @@ curl -X POST "http://127.0.0.1:8000/reset" \
 ```json
 {
   "observation": {
+    "ticket_id": "TICKET-67890",
     "message": "I was charged twice for my subscription this month. Please help!",
     "severity": "high",
+    "category": "billing",
     "status": "open",
+    "phase": "bidding",
     "done": false,
-    "resolution_message": "Ticket loaded. Please classify the issue type."
+    "resolution_message": "Episode initialized. Waiting for bids from all 4 agents..."
   },
   "reward": 0.0,
   "done": false
@@ -163,8 +486,8 @@ curl -X POST "http://127.0.0.1:8000/reset" \
 
 ---
 
-#### **Step 1: Classify Issue**
-Identify the issue type: `billing`, `account`, `bug`, or `feature`
+#### **Phase 1.1: Technical Agent Submits Bid**
+Technical agent assesses confidence in resolving this billing ticket.
 
 **Request:**
 ```bash
@@ -172,40 +495,73 @@ curl -X POST "http://127.0.0.1:8000/step" \
   -H "Content-Type: application/json" \
   -d '{
     "action": {
-      "action_type": "classify_issue",
-      "classification": "billing"
+      "phase": "bidding",
+      "agent": "technical",
+      "confidence": 0.45,
+      "reasoning": "Low confidence - this is not a technical issue"
     }
   }'
 ```
 
-**Response (200 OK):**
+**Response:**
 ```json
 {
   "observation": {
-    "message": "I was charged twice for my subscription this month. Please help!",
-    "severity": "high",
-    "classification": "billing",
-    "correct_classification": true,
-    "classification_reward": 0.2,
-    "reward": 0.2,
-    "done": false,
-    "resolution_message": "Classified as 'billing'. [OK] CORRECT! (+0.2) -> Next: Select solution category."
+    "phase": "bidding",
+    "bids_received": 1,
+    "latest_bid": {
+      "agent": "technical",
+      "confidence": 0.45,
+      "reward_for_calibration": -0.05
+    },
+    "resolution_message": "Technical agent bid: 0.45 (-0.05 penalty: inappropriate confidence)"
+  },
+  "reward": -0.05,
+  "done": false
+}
+```
+
+---
+
+#### **Phase 1.2: Billing Agent Submits Bid (WINNING)**
+Billing agent is confident in handling duplicate charges.
+
+**Request:**
+```bash
+curl -X POST "http://127.0.0.1:8000/step" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": {
+      "phase": "bidding",
+      "agent": "billing",
+      "confidence": 0.92,
+      "reasoning": "High confidence - duplicate charge is a billing issue"
+    }
+  }'
+```
+
+**Response:**
+```json
+{
+  "observation": {
+    "phase": "bidding",
+    "bids_received": 2,
+    "latest_bid": {
+      "agent": "billing",
+      "confidence": 0.92,
+      "reward_for_calibration": +0.2
+    },
+    "resolution_message": "Billing agent bid: 0.92 (+0.2 reward: correct specialist)"
   },
   "reward": 0.2,
   "done": false
 }
 ```
 
-**Valid Classifications:**
-- `billing` - Payment, subscription, charges
-- `account` - Login, password, profile
-- `bug` - Crashes, errors, glitches
-- `feature` - How-to, capabilities, requests
-
 ---
 
-#### **Step 2: Choose Solution**
-Select category and solution for the classified issue.
+#### **Phase 1.3: Account Agent Submits Bid**
+Account agent is less confident.
 
 **Request:**
 ```bash
@@ -213,81 +569,36 @@ curl -X POST "http://127.0.0.1:8000/step" \
   -H "Content-Type: application/json" \
   -d '{
     "action": {
-      "action_type": "choose_solution",
-      "category": "duplicate_charge",
-      "solution": "refund_duplicate_charge"
+      "phase": "bidding",
+      "agent": "account",
+      "confidence": 0.35,
+      "reasoning": "Low confidence - not account-related"
     }
   }'
 ```
 
-**Response (200 OK):**
+**Response:**
 ```json
 {
   "observation": {
-    "category": "duplicate_charge",
-    "correct_category": true,
-    "solution": "refund_duplicate_charge",
-    "correct_solution": true,
-    "solution_reward": 0.3,
-    "reward": 0.3,
-    "done": false,
-    "resolution_message": "Selected category 'duplicate_charge', solution 'refund_duplicate_charge'. [OK] CORRECT! (+0.3)"
+    "phase": "bidding",
+    "bids_received": 3,
+    "latest_bid": {
+      "agent": "account",
+      "confidence": 0.35,
+      "reward_for_calibration": 0.0
+    },
+    "resolution_message": "Account agent bid: 0.35 (appropriate for non-account issue)"
   },
-  "reward": 0.3,
+  "reward": 0.0,
   "done": false
 }
 ```
 
-**Valid Categories & Solutions:**
-
-| Classification | Categories | Solutions |
-|---|---|---|
-| **billing** | `duplicate_charge`, `wrong_amount`, `subscription_issue`, `fraud` | `refund_duplicate_charge`, `correct_invoice`, `cancel_subscription`, `escalate_security` |
-| **account** | `password`, `email`, `2fa`, `security` | `reset_password_link`, `update_email_settings`, `reset_2fa`, `freeze_account` |
-| **bug** | `app_crash`, `ui_glitch`, `missing_data`, `critical` | `update_app_version`, `sync_data`, `clear_cache_restart`, `escalate_engineering` |
-| **feature** | `how_to`, `capability`, `api`, `custom` | `explain_feature`, `enable_feature_trial`, `escalate_sales`, `create_feature_request` |
-
 ---
 
-#### **Step 3: Escalation Decision**
-Decide whether to escalate to a human or close the ticket.
-
-**Request (Close the ticket):**
-```bash
-curl -X POST "http://127.0.0.1:8000/step" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "action": {
-      "action_type": "escalate_decision",
-      "should_escalate": false
-    }
-  }'
-```
-
-**Response (200 OK):**
-```json
-{
-  "observation": {
-    "escalation_decision": false,
-    "correct_escalation": true,
-    "escalation_reward": 0.3,
-    "reward": 0.3,
-    "done": false,
-    "resolution_message": "Decision: CLOSE. [OK] CORRECT! (+0.3) -> Next: Close ticket."
-  },
-  "reward": 0.3,
-  "done": false
-}
-```
-
-**Valid Escalation Decisions:**
-- `true` - Escalate to human specialist
-- `false` - Close the ticket
-
----
-
-#### **Step 4: Close Ticket (Final Step)**
-Close the ticket and complete the episode.
+#### **Phase 1.4: Manager Agent Submits Bid**
+Manager evaluates overall team performance.
 
 **Request:**
 ```bash
@@ -295,9 +606,225 @@ curl -X POST "http://127.0.0.1:8000/step" \
   -H "Content-Type: application/json" \
   -d '{
     "action": {
-      "action_type": "close_ticket"
+      "phase": "bidding",
+      "agent": "manager",
+      "confidence": 0.78,
+      "reasoning": "Billing agent is strong candidate for this ticket"
     }
   }'
+```
+
+**Response:**
+```json
+{
+  "observation": {
+    "phase": "execution",
+    "winner": "billing",
+    "highest_bid": 0.92,
+    "resolution_message": "Bidding complete. Winner: BILLING (0.92). Moving to execution phase...",
+    "bids_summary": {
+      "technical": 0.45,
+      "billing": 0.92,
+      "account": 0.35,
+      "manager": 0.78
+    }
+  },
+  "reward": 0.0,
+  "done": false
+}
+```
+
+---
+
+#### **Phase 2: Execution (Billing Agent Proposes Solution)**
+Winning agent (billing) now proposes a solution.
+
+**Request:**
+```bash
+curl -X POST "http://127.0.0.1:8000/step" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": {
+      "phase": "execution",
+      "agent": "billing",
+      "solution": "refund_duplicate_charge",
+      "category": "duplicate_charge"
+    }
+  }'
+```
+
+**Response:**
+```json
+{
+  "observation": {
+    "phase": "resolution",
+    "proposed_solution": "refund_duplicate_charge",
+    "solution_valid": true,
+    "solution_reward": 0.2,
+    "resolution_message": "Billing solution accepted (+0.2). Moving to manager resolution..."
+  },
+  "reward": 0.2,
+  "done": false
+}
+```
+
+---
+
+#### **Phase 3: Resolution (Manager Evaluates & Closes)**
+Manager makes final decision on ticket resolution.
+
+**Request:**
+```bash
+curl -X POST "http://127.0.0.1:8000/step" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": {
+      "phase": "resolution",
+      "agent": "manager",
+      "decision": "close",
+      "quality_score": 0.95
+    }
+  }'
+```
+
+**Response:**
+```json
+{
+  "observation": {
+    "phase": "resolution",
+    "manager_decision": "close",
+    "quality_reward": 0.2,
+    "team_success_bonus": 0.2,
+    "episode_reward": 0.8,
+    "done": true,
+    "resolution_message": "Ticket resolved successfully! Total reward: 0.8/1.0 = 80%"
+  },
+  "reward": 0.2,
+  "done": true
+}
+```
+
+---
+
+## Python Client Examples
+
+### Example 1: Multi-Agent Negotiation Client
+```python
+import requests
+import json
+
+BASE_URL = "http://127.0.0.1:8000"
+
+# Phase 0: Reset
+print("=== PHASE 0: RESET ===")
+reset_resp = requests.post(f"{BASE_URL}/reset", json={})
+observation = reset_resp.json()["observation"]
+print(f"Ticket: {observation['message']}")
+print(f"Category: {observation['category']}")
+
+# Phase 1: Bidding (all agents submit bids)
+print("\n=== PHASE 1: BIDDING ===")
+agents = [
+    ("technical", 0.45),
+    ("billing", 0.92),
+    ("account", 0.35),
+    ("manager", 0.78)
+]
+
+cumulative_reward = 0
+for agent_name, confidence in agents:
+    action = {
+        "action": {
+            "phase": "bidding",
+            "agent": agent_name,
+            "confidence": confidence
+        }
+    }
+    resp = requests.post(f"{BASE_URL}/step", json=action)
+    reward = resp.json()["reward"]
+    cumulative_reward += reward
+    print(f"{agent_name:12} | Bid: {confidence} | Reward: {reward:+.2f}")
+
+print(f"\nBidding phase total reward: {cumulative_reward}")
+
+# Phase 2: Execution (winner proposes solution)
+print("\n=== PHASE 2: EXECUTION ===")
+action = {
+    "action": {
+        "phase": "execution",
+        "agent": "billing",
+        "solution": "refund_duplicate_charge",
+        "category": "duplicate_charge"
+    }
+}
+resp = requests.post(f"{BASE_URL}/step", json=action)
+exec_reward = resp.json()["reward"]
+cumulative_reward += exec_reward
+print(f"Execution reward: {exec_reward:+.2f}")
+
+# Phase 3: Resolution (manager closes)
+print("\n=== PHASE 3: RESOLUTION ===")
+action = {
+    "action": {
+        "phase": "resolution",
+        "agent": "manager",
+        "decision": "close",
+        "quality_score": 0.95
+    }
+}
+resp = requests.post(f"{BASE_URL}/step", json=action)
+result = resp.json()
+res_reward = result["reward"]
+cumulative_reward += res_reward
+print(f"Resolution reward: {res_reward:+.2f}")
+print(f"\n✅ Episode Complete!")
+print(f"Final Episode Reward: {cumulative_reward:.2f}")
+print(f"Done: {result['done']}")
+```
+
+### Example 2: Monitor Agent Metrics
+```python
+import requests
+import json
+
+BASE_URL = "http://127.0.0.1:8000"
+
+# Get all agent metrics
+resp = requests.get(f"{BASE_URL}/api/agents/metrics")
+metrics = resp.json()["metrics"]
+
+print("=== AGENT PERFORMANCE METRICS ===\n")
+print(f"{'Agent':<15} {'Episodes':<12} {'Avg Reward':<12} {'Success %':<12}")
+print("-" * 51)
+for agent_metrics in metrics:
+    agent = agent_metrics["agent"]
+    episodes = agent_metrics["episodes"]
+    avg_reward = agent_metrics["avg_reward"]
+    success_rate = agent_metrics["success_rate"] * 100
+    print(f"{agent:<15} {episodes:<12} {avg_reward:<12.2f} {success_rate:<12.1f}%")
+```
+
+### Example 3: Get Specific Agent Specialization
+```python
+import requests
+
+BASE_URL = "http://127.0.0.1:8000"
+
+# Get billing agent specialization
+resp = requests.get(f"{BASE_URL}/api/agents/billing/specialization")
+spec = resp.json()
+
+print("=== BILLING AGENT SPECIALIZATION ===\n")
+print(f"Agent: {spec['agent_name']}")
+print(f"Model: {spec['model']}")
+print(f"Training Examples: {spec['training_examples']}")
+print(f"Training Method: {spec['training_method']}")
+print(f"\nSpecializes in:")
+for specialty in spec['specializes_in']:
+    print(f"  • {specialty}")
+```
+
+---
 ```
 
 **Response (200 OK):**

@@ -8,10 +8,10 @@
 
 # Support both in-repo and standalone imports
 try:
-    # In-repo imports
-    from .customer_support_environment import CustomerSupportEnvironment
+  # In-repo imports
+  from .customer_support_environment import CustomerSupportEnvironment
 except ImportError:
-    # Standalone imports
-    from server.customer_support_environment import CustomerSupportEnvironment
+  # Standalone imports
+  from server.customer_support_environment import CustomerSupportEnvironment
 
 __all__ = ["CustomerSupportEnvironment"]

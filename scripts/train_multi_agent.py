@@ -1,59 +1,69 @@
 #!/usr/bin/env python3
-"""Main training script for multi-agent customer support system."""
+"""
+ TRAIN 4 SPECIALIZED LLM AGENTS - TRL GRPO APPROACH
+──────────────────────────────────────────────────────
+Theme #1: Multi-Agent Interactions (Hackathon)
 
-import argparse
+This script trains 4 specialized LLM agents:
+- Router Agent: Classify support tickets
+- Resolver Agent: Propose solutions
+- Manager Agent: Make escalation decisions
+- Quality Agent: Assess satisfaction
+
+Usage:
+  python scripts/train_multi_agent.py
+
+Training uses:
+- Model: Llama-3.2-1B-Instruct
+- Optimizer: TRL GRPO
+- Quantization: Unsloth 4-bit
+- Training examples per agent: 100
+"""
+
 import sys
-import torch
-import yaml
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from my_env.pytorch.agents.multi_agent_system import MultiAgentSystem
-from my_env.pytorch.training.trainer import MultiAgentTrainer
-from my_env.pytorch.training.replay_buffer import MultiAgentReplayBuffer
-from my_env.pytorch.training.curriculum import CurriculumScheduler
-from my_env.pytorch.utils.logging_utils import StructuredLogger
+from my_env.pytorch.training.trl_multi_agent_trainer import MultiAgentGRPOTrainer
 
 
 def main():
-    """Main training entry point."""
-    parser = argparse.ArgumentParser(description="Train multi-agent customer support system")
-    parser.add_argument("--episodes", type=int, default=500, help="Number of episodes")
-    parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
-    parser.add_argument("--debug", action="store_true", help="Debug mode (5 episodes)")
-
-    args = parser.parse_args()
-
-    logger = StructuredLogger("Training", log_file="training.log")
-    
-    device = args.device
-    num_episodes = 5 if args.debug else args.episodes
-
-    # Initialize
-    system = MultiAgentSystem(device=device)
-    replay_buffer = MultiAgentReplayBuffer(max_size=10000, batch_size=32)
-    trainer = MultiAgentTrainer(system, replay_buffer, device=device)
-    curriculum = CurriculumScheduler()
-
-    print(f"\n{'='*60}")
-    print(f"Multi-Agent Training | Episodes: {num_episodes} | Device: {device}")
-    print(f"Total Parameters: {system.total_parameters:,}")
-    print(f"{'='*60}\n")
-
-    for episode in range(num_episodes):
-        # Placeholder training
-        if (episode + 1) % 50 == 0:
-            metrics = trainer.get_metrics_summary()
-            print(f"Episode {episode+1}: {metrics}")
-
-    print(f"\n{'='*60}")
-    print("Training Complete!")
-    print(f"{'='*60}\n")
-
-    trainer.save_checkpoint("checkpoints/final.pt")
-    logger.log_event("training_complete", {})
+  """Train all 4 agents with TRL GRPO."""
+  
+  print("\n" + "="*70)
+  print(" MULTI-AGENT TRL GRPO TRAINING PIPELINE".center(70))
+  print("="*70)
+  print("\nTraining 4 Specialized LLM Agents:")
+  print(" 1. Router Agent (classify tickets)")
+  print(" 2. Resolver Agent (propose solutions)")
+  print(" 3. Manager Agent (escalation decisions)")
+  print(" 4. Quality Agent (satisfaction assessment)")
+  print("\nExpected time: 20-45 minutes on GPU")
+  print("\n" + "="*70 + "\n")
+  
+  # Create trainer
+  trainer = MultiAgentGRPOTrainer(
+    model_name="unsloth/Llama-3.2-1B-Instruct",
+    num_agents=4,
+    learning_rate=1e-4,
+    batch_size=8,
+    num_train_epochs=3,
+  )
+  
+  # Train all 4 agents
+  trainer.train_all_agents(output_dir="./checkpoints")
+  
+  print("\n" + "="*70)
+  print("✅ TRAINING COMPLETE - All 4 agents trained!")
+  print("="*70)
+  print("\nNext steps:")
+  print(" 1. Start environment server:")
+  print("   python -m uvicorn my_env.server.app:app --port 8000")
+  print(" 2. Run inference demo:")
+  print("   python scripts/inference_demo.py")
+  print("="*70 + "\n")
 
 
 if __name__ == "__main__":
-    main()
+  main()

@@ -7,38 +7,39 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
     client = TestClient(app)
     del web_manager, action_fields, metadata, is_chat_env, quick_start_md
 
-    def step_action(action_type, classification, category, solution, should_escalate, escalate_reason, history_state):
-        # Build action payload based on action_type
-        # Only include fields relevant to the current step
-        action_dict = {"action_type": action_type}
+    def step_action(agent_action, confidence, solution, history_state):
+        # Build action payload based on agent_action
+        action_dict = {}
         
-        if action_type == "classify_issue":
-            if not classification:
-                return ("", "<div style='background:#fee; color:#c33; padding:10px; border-radius:4px;'>❌ Error: Classification required for classify_issue</div>", 
-                        render_action_history(history_state), "Missing classification", history_state, "")
-            action_dict["classification"] = classification
-        
-        elif action_type == "choose_solution":
-            if not category or not solution:
-                return ("", "<div style='background:#fee; color:#c33; padding:10px; border-radius:4px;'>❌ Error: Category and Solution required for choose_solution</div>", 
-                        render_action_history(history_state), "Missing category or solution", history_state, "")
-            action_dict["category"] = category
+        if "Bid" in agent_action:
+            if not confidence:
+                return ("", "<div style='background:#fee; color:#c33; padding:10px; border-radius:4px;'>❌ Error: Confidence required for bidding</div>", 
+                        render_action_history(history_state), "Missing confidence", history_state, "")
+            try:
+                conf_val = float(confidence)
+            except ValueError:
+                return ("", "<div style='background:#fee; color:#c33; padding:10px; border-radius:4px;'>❌ Error: Confidence must be a number</div>", 
+                        render_action_history(history_state), "Invalid confidence", history_state, "")
+                
+            agent_prefix = agent_action.split(" ")[0].lower()
+            action_dict["action_type"] = f"{agent_prefix}_bid"
+            action_dict["confidence"] = conf_val
+            
+        elif "Execute" in agent_action:
+            if not solution:
+                return ("", "<div style='background:#fee; color:#c33; padding:10px; border-radius:4px;'>❌ Error: Solution required for execution</div>", 
+                        render_action_history(history_state), "Missing solution", history_state, "")
+            agent_prefix = agent_action.split(" ")[0].lower()
+            action_dict["action_type"] = f"{agent_prefix}_execute"
             action_dict["solution"] = solution
-        
-        elif action_type == "escalate_decision":
-            if should_escalate is None or should_escalate.strip() == "":
-                return ("", "<div style='background:#fee; color:#c33; padding:10px; border-radius:4px;'>❌ Error: Should Escalate required (true/false)</div>", 
-                        render_action_history(history_state), "Missing escalation decision", history_state, "")
-            action_dict["should_escalate"] = should_escalate.lower() == "true"
-            if escalate_reason and escalate_reason.strip():
-                action_dict["escalate_reason"] = escalate_reason
-        
-        elif action_type == "close_ticket":
-            # close_ticket only needs action_type
-            pass
+            
+        elif "Evaluate" in agent_action:
+            agent_prefix = agent_action.split(" ")[0].lower()
+            action_dict["action_type"] = f"{agent_prefix}_evaluate"
+            # Optional evaluate specific fields can go here
         
         try:
-            r = client.post("/step", json=action_dict)
+            r = client.post("/step", json={"action": action_dict})
             if r.status_code == 200:
                 data = r.json()
                 obs = data.get("observation", {})
@@ -47,7 +48,7 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
                 
                 step_info = {
                     "step_num": len(history_state) + 1,
-                    "action_type": action_type,
+                    "action_type": action_dict["action_type"],
                     "timestamp": datetime.now().strftime("%H:%M:%S"),
                     "reward": reward,
                     "status": obs.get("status", "unknown")
@@ -112,17 +113,14 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
             return ("", "", "", f"Error: {str(e)}", history_state, "")
 
     def render_scoreboard(obs, current_reward):
-        """Render 4 metric boxes: Step Reward, Total Reward, Score, Status"""
+        """Render 4 metric boxes: Step Reward, Total Reward, Score, Phase"""
         if not obs:
             obs = {}
         
         last_action_reward = current_reward or 0.0
         total_reward = obs.get("episode_reward", 0.0) or 0.0
         score = obs.get("episode_score", 0.0) or 0.0
-        status = obs.get("status", "unknown").upper()
-        done = obs.get("episode_done", False)
-        
-        status_text = "DONE" if done else "RUNNING" if status != "ERROR" else "ERROR"
+        phase = obs.get("phase", "unknown").upper()
         
         html = f"""
         <div style='display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0; background: none; border: none;'>
@@ -131,7 +129,7 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
                 <div style='font-size: 28px; font-weight: 700; margin-top: 8px;'>{last_action_reward:+.2f}</div>
             </div>
             <div style='background: #fd7e14; color: white; padding: 20px; border-radius: 0; text-align: center; border: none;'>
-                <div style='font-size: 12px; font-weight: 600;'>Total Reward</div>
+                <div style='font-size: 12px; font-weight: 600;'>Total Team Reward</div>
                 <div style='font-size: 28px; font-weight: 700; margin-top: 8px;'>{total_reward:.2f}</div>
             </div>
             <div style='background: #198754; color: white; padding: 20px; border-radius: 0; text-align: center; border: none;'>
@@ -139,8 +137,8 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
                 <div style='font-size: 28px; font-weight: 700; margin-top: 8px;'>{score*100:.0f}%</div>
             </div>
             <div style='background: #6c757d; color: white; padding: 20px; border-radius: 0; text-align: center; border: none;'>
-                <div style='font-size: 12px; font-weight: 600;'>Status</div>
-                <div style='font-size: 18px; font-weight: 700; margin-top: 8px;'>{status_text}</div>
+                <div style='font-size: 12px; font-weight: 600;'>Current Phase</div>
+                <div style='font-size: 18px; font-weight: 700; margin-top: 8px;'>{phase}</div>
             </div>
         </div>
         """
@@ -151,9 +149,11 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
         if not obs:
             return "<div style='color: #bbb; padding: 30px; text-align: center; background: #23232b; border-radius: 4px;'>Reset to load ticket</div>"
         
-        message = obs.get("message", "No message")
-        severity = obs.get("severity", "unknown").upper()
-        ticket_id = obs.get("ticket_id", "—")
+        # New multi_agent_negotiation structure nests ticket inside openenv 'obs'
+        ticket = obs.get("ticket", {})
+        message = ticket.get("message", "No message") if isinstance(ticket, dict) else obs.get("message", "No message")
+        severity = ticket.get("severity", "unknown").upper() if isinstance(ticket, dict) else obs.get("severity", "unknown").upper()
+        ticket_id = ticket.get("id", "—") if isinstance(ticket, dict) else obs.get("ticket_id", "—")
         
         html = f"""
         <div style='background: #23232b; padding: 20px; border-radius: 4px;'>
@@ -178,12 +178,12 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
         if not obs:
             return ""
         
-        resolution = obs.get("resolution_message", "")
+        feedback = obs.get("message", "")
         
         html = f"""
         <div style='background: #23232b; padding: 15px; border-radius: 4px; margin-top: 15px;'>
-            <div style='font-size: 13px; color: #bbb; font-weight: 600; margin-bottom: 8px;'>System Feedback</div>
-            <div style='font-size: 14px; color: #eee; line-height: 1.6;'>{resolution if resolution else "Waiting for action..."}</div>
+            <div style='font-size: 13px; color: #bbb; font-weight: 600; margin-bottom: 8px;'>Environment System Feedback</div>
+            <div style='font-size: 14px; color: #eee; line-height: 1.6;'>{feedback if feedback else "Waiting for action..."}</div>
         </div>
         """
         return html
@@ -260,66 +260,53 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
     }
     """
 
-    with gr.Blocks(css=custom_css, title="Customer Support OpenEnv") as demo:
+    with gr.Blocks(css=custom_css, title="Customer Support Multi-Agent OpenEnv") as demo:
         gr.Markdown("""
-        # Customer Support Command Center
-        Manage support tickets. Classify. Solve. Escalate. Close.
+        # Customer Support Command Center (ROUND 2)
+        Manage support tickets manually using the 3-Phase Bidding Protocol.
         """)
         
         # ======== ZONE 1: INPUT ========
         with gr.Group():
             gr.Markdown("### Step-by-Step Action Input")
-            gr.Markdown("<div style='background: #1a3a3a; padding: 12px; border-radius: 4px; font-size: 12px; color: #aaa; margin-bottom: 15px;'><b> Instructions:</b> Select action type → Fill in required field(s) → Click EXECUTE STEP → Repeat for next step</div>")
+            gr.Markdown("<div style='background: #1a3a3a; padding: 12px; border-radius: 4px; font-size: 12px; color: #aaa; margin-bottom: 15px;'><b> Instructions:</b> Phase 1: Bidding → Phase 2: Winning Agent Executes → Phase 3: Manager Evaluates</div>")
+            
             with gr.Row():
-                action_type = gr.Dropdown(
-                    choices=["classify_issue", "choose_solution", "escalate_decision", "close_ticket"],
-                    value="classify_issue",
-                    label="Action Type",
-                    info="Step 1→2→3→4",
-                    scale=3
+                agent_action = gr.Dropdown(
+                    choices=[
+                        "Technical Bid", "Billing Bid", "Account Bid", "Manager Bid",
+                        "Technical Execute", "Billing Execute", "Account Execute",
+                        "Manager Evaluate"
+                    ],
+                    value="Technical Bid",
+                    label="Agent & Action Selection",
+                    scale=2
                 )
             
-            # Step 1: classify_issue (1 field)
-            with gr.Row(visible=True) as row_classify:
-                classification = gr.Textbox(label="Classification", placeholder="billing, account, bug, feature", scale=1)
+            with gr.Row(visible=True) as row_bid:
+                confidence = gr.Textbox(label="Confidence (0.0 to 1.0)", placeholder="e.g. 0.95", scale=1)
             
-            # Step 2: choose_solution (2 fields)
-            with gr.Row(visible=False) as row_solution:
-                category = gr.Textbox(label="Category", placeholder="duplicate_charge, password, api, etc.", scale=1)
-                solution = gr.Textbox(label="Solution", placeholder="refund_duplicate_charge, reset_password_link, etc.", scale=1)
-            
-            # Step 3: escalate_decision (2 fields)
-            with gr.Row(visible=False) as row_escalate:
-                should_escalate = gr.Textbox(label="Escalate? (true/false)", placeholder="true or false", scale=1)
-                escalate_reason = gr.Textbox(label="Reason (if escalating)", placeholder="fraud_suspected, security_breach, etc.", scale=1)
-            
-            # Step 4: close_ticket (message only)
-            with gr.Row(visible=False) as row_close:
-                gr.Markdown("## ✅ Close Ticket\nClick **EXECUTE STEP** to close the ticket")
+            with gr.Row(visible=False) as row_execute:
+                solution = gr.Textbox(label="Proposed Solution", placeholder="e.g. clear_cache_restart", scale=1)
             
             with gr.Row():
-                step_btn = gr.Button("EXECUTE STEP", variant="primary", scale=2)
-                reset_btn = gr.Button("RESET", scale=1)
+                step_btn = gr.Button("EXECUTE AGENT ACTION", variant="primary", scale=2)
+                reset_btn = gr.Button("RESET EPISODE", scale=1)
                 state_btn = gr.Button("GET STATE", scale=1)
             
             # Update form visibility based on action type
             def update_form_visibility(action):
-                is_classify = action == "classify_issue"
-                is_solution = action == "choose_solution"
-                is_escalate = action == "escalate_decision"
-                is_close = action == "close_ticket"
-                
+                is_bid = "Bid" in action
+                is_exec = "Execute" in action
                 return [
-                    gr.update(visible=is_classify),      # row_classify
-                    gr.update(visible=is_solution),      # row_solution
-                    gr.update(visible=is_escalate),      # row_escalate
-                    gr.update(visible=is_close)          # row_close
+                    gr.update(visible=is_bid),   # row_bid
+                    gr.update(visible=is_exec)   # row_execute
                 ]
             
-            action_type.change(
+            agent_action.change(
                 update_form_visibility,
-                inputs=[action_type],
-                outputs=[row_classify, row_solution, row_escalate, row_close]
+                inputs=[agent_action],
+                outputs=[row_bid, row_execute]
             )
         
         # ======== ZONE 2: REWARD SCOREBOARD ========
@@ -335,12 +322,12 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
         
         # ======== ZONE 5: ACTION HISTORY ========
         with gr.Group():
-            gr.Markdown("### Action Timeline")
+            gr.Markdown("### Agent Decison Timeline")
             history_html = gr.HTML("<div style='padding: 20px; color: #999; text-align: center;'>No actions yet</div>")
         
         # ======== ZONE 6: RAW JSON (Debug) ========
         with gr.Group():
-            gr.Markdown("### Raw Observation (Debug)")
+            gr.Markdown("### Raw Observation Dump (Debug)")
             raw_json = gr.Code(language="json", label="Full Observation JSON", interactive=False)
         
         # State management
@@ -349,7 +336,7 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
         # Event handlers
         step_btn.click(
             step_action,
-            inputs=[action_type, classification, category, solution, should_escalate, escalate_reason, history_state],
+            inputs=[agent_action, confidence, solution, history_state],
             outputs=[ticket_html, scoreboard_html, history_html, feedback_html, history_state, raw_json]
         )
         

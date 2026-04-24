@@ -1,11 +1,15 @@
-# Multi-Agent Training Configuration (Single consolidated file)
+# Multi-Agent Training Configuration - PPO (Single consolidated file)
 
 training:
+  algorithm: "ppo"
   num_episodes: 500
   max_steps_per_episode: 10
   learning_rate: 1.0e-4
   gamma: 0.99
-  replay_buffer_size: 10000
+  gae_lambda: 0.95
+  clip_ratio: 0.2
+  entropy_coef: 0.01
+  ppo_epochs: 4
   batch_size: 32
   checkpoint_freq: 50
   device: "cuda"
@@ -17,10 +21,11 @@ model:
     encoder_frozen: true
     
   coordinator:
-    dqn_input_dim: 773
-    dqn_output_dim: 5
-    dqn_hidden_dims: [256, 128, 64]
-    dueling: true
+    algorithm: "ppo"
+    ppo_input_dim: 773
+    ppo_output_dim: 5
+    ppo_hidden_dims: [256, 128, 64]
+    actor_critic: true
     
   specialist:
     num_specialists: 3

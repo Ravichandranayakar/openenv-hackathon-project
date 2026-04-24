@@ -74,3 +74,36 @@ UI_STEP_BY_STEP_GUIDE.md
 test_endpoints_verification.py
 PRESENTATION_SCRIPT.md
 ROUND2_IMPLEMENTATION_PLAN.md
+QUICK_REFERENCE.md
+ROUND2_PROJECT_STATUS.md
+ROUND2_EXPLANATION_FOR_JUDGES.md
+dqn_network.py
+embeddings.py
+ROUND2_CLARIFICATION_EMAIL.md
+readme2.md
+ROUND2_MULTI_AGENT_REDESIGN.md
+test_critical_fixes.py
+remove_emojis.py
+ROUND2_PROBLEM_STATEMENT.md
+test_end_to_end_4agents.py
+# Obsolete Round 1 PyTorch Single-Agent Prototypes
+my_env/pytorch/agents/
+my_env/pytorch/models/
+my_env/pytorch/evaluation/
+my_env/pytorch/inference/
+
+test_end_to_end_4agents.py
+
+plot_rewards.py
+
+# Broken scripts (import deleted Round 1 modules)
+scripts/inference_demo.py
+scripts/evaluate.py
+
+# Round 1 dead code
+my_env/agents.py
+improved_agent_training.py
+check_ui_root.py
+remove_emojis.py
+readme2.md
+cmd.txt
