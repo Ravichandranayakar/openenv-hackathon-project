@@ -26,6 +26,9 @@ The core underlying methodology uses reinforcement learning to fine-tune a singl
 - **LLM Base**: Llama-3.2-1B-Instruct
 - **Optimization**: Unsloth (4-bit quantization)
 
+> ** Training Run Notebook:**  
+>  View the Official Training Run on Google Colab (Link to be added on-site)
+
 ---
 
 ## How It Works: 4-Agent Negotiation System
