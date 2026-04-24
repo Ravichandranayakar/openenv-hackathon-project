@@ -238,8 +238,6 @@ openenv-hackathon-project/
 
 ## How to Run
 
----
-
 ## Multi-Agent Negotiation Features
 
 ✅ **4 Specialized LLM Agents** with TRL GRPO fine-tuning

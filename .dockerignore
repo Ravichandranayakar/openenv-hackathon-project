@@ -82,6 +82,8 @@ ROUND2_CLARIFICATION_EMAIL.md
 ROUND2_MULTI_AGENT_REDESIGN.md
 test_critical_fixes.py
 remove_emojis.py
+ROUND2_EXPLANATION_FOR_JUDGES.md
+ROUND2_PROJECT_STATUS.md
 # Obsolete Round 1 PyTorch Single-Agent Prototypes
 my_env/pytorch/agents/
 my_env/pytorch/models/
