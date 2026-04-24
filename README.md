@@ -292,16 +292,11 @@ All 11 API endpoints have complete examples in **[API_USAGE_GUIDE.md](my_env/API
 
 ---
 
-## ROUND 2 Documentation Links
+## Documentation Links
 
 | Document | Purpose |
 |----------|---------|
 | [ROUND2_PROBLEM_STATEMENT.md](PROBLEM_STATEMENT.md) | Core problem definition & theme |
-| [ROUND2_EXPLANATION_FOR_JUDGES.md](ROUND2_EXPLANATION_FOR_JUDGES.md) | Detailed submission explanation |
-| [ROUND2_MULTI_AGENT_REDESIGN.md](ROUND2_MULTI_AGENT_REDESIGN.md) | Architecture deep-dive |
-| [ROUND2_PROJECT_STATUS.md](ROUND2_PROJECT_STATUS.md) | Completion checklist |
-| [ANTI_CHEATING_MEASURES.md](ANTI_CHEATING_MEASURES.md) | Anti-hacking safeguards explained |
-| [GETTING_STARTED.md](GETTING_STARTED.md) | Step-by-step setup guide |
 | [API_USAGE_GUIDE.md](my_env/API_USAGE_GUIDE.md) | Complete API documentation |
 
 ---
