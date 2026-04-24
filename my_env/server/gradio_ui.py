@@ -262,10 +262,9 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
 
     with gr.Blocks(css=custom_css, title="Customer Support Multi-Agent OpenEnv") as demo:
         gr.Markdown("""
-        # Customer Support Command Center (ROUND 2)
+        # Customer Support Command Center 🤖
         Manage support tickets manually using the 3-Phase Bidding Protocol.
         """)
-        
         # ======== ZONE 1: INPUT ========
         with gr.Group():
             gr.Markdown("### Step-by-Step Action Input")
@@ -279,61 +278,64 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
                         "Manager Evaluate"
                     ],
                     value="Technical Bid",
-                    label="Agent & Action Selection",
+                    label="1. Select Agent & Action",
                     scale=2
                 )
             
             with gr.Row(visible=True) as row_bid:
-                confidence = gr.Textbox(label="Confidence (0.0 to 1.0)", placeholder="e.g. 0.95", scale=1)
+                confidence = gr.Slider(minimum=0.0, maximum=1.0, value=0.95, step=0.01, label="2. Confidence Level", scale=1)
             
             with gr.Row(visible=False) as row_execute:
-                solution = gr.Textbox(label="Proposed Solution", placeholder="e.g. clear_cache_restart", scale=1)
+                solution = gr.Textbox(label="2. Proposed Solution", placeholder="e.g. clear_cache_restart", scale=1)
             
             with gr.Row():
                 step_btn = gr.Button("EXECUTE AGENT ACTION", variant="primary", scale=2)
-                reset_btn = gr.Button("RESET EPISODE", scale=1)
                 state_btn = gr.Button("GET STATE", scale=1)
-            
-            # Update form visibility based on action type
-            def update_form_visibility(action):
-                is_bid = "Bid" in action
-                is_exec = "Execute" in action
-                return [
-                    gr.update(visible=is_bid),   # row_bid
-                    gr.update(visible=is_exec)   # row_execute
-                ]
-            
-            agent_action.change(
-                update_form_visibility,
-                inputs=[agent_action],
-                outputs=[row_bid, row_execute]
-            )
-        
+                reset_btn = gr.Button("RESET EPISODE", scale=1)
+
         # ======== ZONE 2: REWARD SCOREBOARD ========
-        scoreboard_html = gr.HTML("<div style='padding: 20px; color: #999; text-align: center;'>Reset to see metrics</div>")
+        with gr.Group():
+            gr.Markdown("### Live Metrics & Scoreboard")
+            scoreboard_html = gr.HTML("<div style='padding: 20px; background: #1a1a24; border-radius: 6px; color: #999; text-align: center;'>Click RESET EPISODE to load metrics</div>")
         
         # ======== ZONE 3: CURRENT TICKET ========
         with gr.Group():
             gr.Markdown("### Current Ticket")
-            ticket_html = gr.HTML("<div style='padding: 30px; color: #999; text-align: center;'>Reset to load ticket</div>")
+            ticket_html = gr.HTML("<div style='padding: 20px; background: #1a1a24; border-radius: 6px; color: #999; text-align: center;'>Click RESET EPISODE to load ticket</div>")
         
         # ======== ZONE 4: SYSTEM FEEDBACK ========
-        feedback_html = gr.HTML()
+        with gr.Group():
+            gr.Markdown("### Environment System Feedback")
+            feedback_html = gr.HTML("<div style='padding: 20px; background: #1a1a24; border-radius: 6px; color: #999; text-align: center;'>Waiting for agent action...</div>")
         
         # ======== ZONE 5: ACTION HISTORY ========
         with gr.Group():
-            gr.Markdown("### Agent Decison Timeline")
-            history_html = gr.HTML("<div style='padding: 20px; color: #999; text-align: center;'>No actions yet</div>")
+            gr.Markdown("### Agent Decision Timeline")
+            history_html = gr.HTML("<div style='padding: 20px; background: #1a1a24; border-radius: 6px; color: #999; text-align: center;'>No actions yet</div>")
         
         # ======== ZONE 6: RAW JSON (Debug) ========
         with gr.Group():
-            gr.Markdown("### Raw Observation Dump (Debug)")
+            gr.Markdown("### Technical Observation Dump (Debug)")
             raw_json = gr.Code(language="json", label="Full Observation JSON", interactive=False)
         
         # State management
         history_state = gr.State([])
         
-        # Event handlers
+        # Update form visibility based on action type
+        def update_form_visibility(action):
+            is_bid = "Bid" in action
+            is_exec = "Execute" in action
+            return [
+                gr.update(visible=is_bid),   # row_bid
+                gr.update(visible=is_exec)   # row_execute
+            ]
+        
+        agent_action.change(
+            update_form_visibility,
+            inputs=[agent_action],
+            outputs=[row_bid, row_execute]
+        )
+        
         step_btn.click(
             step_action,
             inputs=[agent_action, confidence, solution, history_state],

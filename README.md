@@ -58,7 +58,7 @@ Manager Agent performs final quality assurance:
 
 ---
 
-## Quick Start (ROUND 2)
+## Quick Start 
 
 ### 1️ **Setup (5 minutes)**
 
@@ -238,6 +238,8 @@ openenv-hackathon-project/
 
 ## How to Run
 
+---
+
 ## Multi-Agent Negotiation Features
 
 ✅ **4 Specialized LLM Agents** with TRL GRPO fine-tuning
@@ -294,7 +296,7 @@ All 11 API endpoints have complete examples in **[API_USAGE_GUIDE.md](my_env/API
 
 | Document | Purpose |
 |----------|---------|
-| [ROUND2_PROBLEM_STATEMENT.md](ROUND2_PROBLEM_STATEMENT.md) | Core problem definition & theme |
+| [ROUND2_PROBLEM_STATEMENT.md](PROBLEM_STATEMENT.md) | Core problem definition & theme |
 | [ROUND2_EXPLANATION_FOR_JUDGES.md](ROUND2_EXPLANATION_FOR_JUDGES.md) | Detailed submission explanation |
 | [ROUND2_MULTI_AGENT_REDESIGN.md](ROUND2_MULTI_AGENT_REDESIGN.md) | Architecture deep-dive |
 | [ROUND2_PROJECT_STATUS.md](ROUND2_PROJECT_STATUS.md) | Completion checklist |
@@ -468,64 +470,32 @@ For detailed request/response examples, workflow diagrams, and Python client exa
 
 ---
 
-## How Agents Learn — TRL GRPO Training
-
-The Learning Loop (How RL actually improves the model):
-
-```
-1. Episode starts → Environment resets, loads a fresh customer ticket
-2. Each agent receives the ticket as a prompt via its specialized system persona
-3. Agents generate JSON outputs: bids, solutions, evaluations
-4. Environment verifies each action → calculates reward from 11 independent signals
-5. TRL GRPO computes the policy gradient using group-relative reward comparison
-6. Shared Llama-3.2-1B backbone weights are updated
-7. Repeat → agents gradually learn when to bid high, when to defer, when to escalate
-```
-
-### Before Training (Untrained Llama-3.2-1B):
-- Agents output malformed JSON (Malformed Bid Penalty fires every step)
-- All agents bid uniformly 0.5 (no specialization)
-- Manager escalates randomly (~50% accuracy)
-- Average episode reward: **-0.10 to +0.10**
-
-### After Training (Post-GRPO Fine-Tuning):
-- Agents output valid structured JSON reliably
-- Technical agent bids 0.9+ on crashes, 0.05 on billing (genuine specialization)
-- Manager correctly identifies critical tickets (85%+ accuracy)
-- Average episode reward: **+0.70 to +0.85**
-
-### Why GRPO, Not PPO:
-- GRPO eliminates the value model entirely
-- Our environment IS the verifier — no learned reward model needed
-- GRPO directly compares groups of rollouts, matching our multi-agent bid comparison
-- Result: faster convergence, lower VRAM usage
-
----
-
 ## Deployment
 
-### To HuggingFace Spaces (Grand Finale Submission)
+### HuggingFace Spaces (ROUND 2 Submission)
 
 Deploy the environment to HuggingFace Spaces for judges to interact with:
 
 ```bash
-openenv push --name [YourUsername]/openenv-multi-agent-support
-```
+# 1. Create Spaces repo
+huggingface-cli repo create [YourUsername]/openenv-customer-support --type space --space-sdk docker
 
-**If HF Space shows blank screen:** Use this direct link instead:
-```
-https://[yourusername]-openenv-multi-agent-support.hf.space/web
+# 2. Deploy
+openenv push --name [YourUsername]/openenv-customer-support --token <hf_token>
 ```
 
 **What Gets Deployed:**
--  FastAPI server + all endpoints
--  Pre-trained agent checkpoints
--  Environment logic
+-  FastAPI server + all 11 endpoints
+-  Gradio UI for manual bidding
+-  Pre-trained agent checkpoints (if available)
+-  Environment logic (no heavy training dependencies)
 
 **What Stays Local (100+ GB):**
 -  Training code (not needed for inference)
 -  Full Hugging Face model cache
 -  Training datasets
+
+**Spaces URL:** `https://huggingface.co/spaces/[YourUsername]/openenv-customer-support`
 
 ### Docker Deployment
 
@@ -540,6 +510,8 @@ docker run -p 8000:8000 \
   -e HF_TOKEN=$HF_TOKEN \
   openenv-support:latest
 ```
+
+**Container size:** ~2 GB (includes models but not training libs)
 
 ---
 
@@ -564,13 +536,37 @@ pip install unsloth --upgrade
 python -c "from unsloth import FastLanguageModel; print('OK')"
 ```
 
-### Issue: "CUDA out of memory"
-```bash
-# Reduce batch size in training
-python scripts/train_multi_agent.py --batch_size 4
-```
+---
 
-### Issue: "Port 8000 already in use"
+For more details, see [API_USAGE_GUIDE.md](my_env/API_USAGE_GUIDE.md) for complete endpoint documentation.
+- 2fa -> reset_2fa, send_recovery_codes
+- security -> escalate_security, freeze_account
+
+**Bug Issues:**
+- app_crash -> update_app_version, clear_cache_restart
+- ui_glitch -> clear_cache_restart, escalate_engineering
+- missing_data -> sync_data, escalate_engineering
+- critical -> escalate_engineering, create_hotfix
+
+**Feature Issues:**
+- how_to -> explain_feature, send_tutorial
+- capability -> escalate_sales, enable_feature_trial
+- api -> escalate_sales, schedule_consultation
+- custom -> escalate_sales, create_feature_request
+
+## API Endpoints
+
+- `POST /reset` - Start new episode, load random ticket
+- `POST /step` - Process agent action (classify/choose_solution/escalate_decision/close_ticket)
+- `GET /state` - Get current episode state
+- `GET /health` - Health check
+- `POST /tasks` - List available tasks
+- `POST /grader` - Grade episode (returns score 0.0-1.0)
+
+## Running Locally
+
+**Prerequisites:** Python 3.10+
+
 ```bash
 # Use different port
 python -m uvicorn my_env.server.app:app --port 8001
@@ -587,11 +583,31 @@ export HF_HOME=/path/to/cache
 
 ## Citation & Attribution
 
-**Built for:** Meta PyTorch OpenEnv Hackathon 2026 — Grand Finale
-**Theme:** Multi-Agent Interactions
+**Built for:** PyTorch OpenEnv Hackathon 2026 - ROUND 2
+**Theme:** Multi-Agent Interactions 
 **Framework:** OpenEnv + TRL GRPO + Unsloth 4-bit
 **Base Model:** Llama-3.2-1B-Instruct
 
 ---
+## Deployment
 
+### To HuggingFace Spaces
 
+```bash
+openenv push --name RavichandraNayakar/my_env --token <hf_token>
+```
+**Hugging Face Space URL**
+```
+https://huggingface.co/spaces/RavichandraNayakar/customer_support_env
+```
+**If HF Space shows blank screen:** Use this direct link instead:
+```
+https://ravichandranayakar-customer-support-env.hf.space/web
+```
+
+### Docker
+
+```bash
+docker build -t my-env .
+docker run -p 8000:8000 my-env
+```
