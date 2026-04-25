@@ -102,7 +102,7 @@ class MultiAgentGRPOTrainer:
             lora_alpha=16,
             lora_dropout=0,                # Unsloth recommends 0 for speed
             bias="none",
-            use_gradient_checkpointing="unsloth",  # Saves VRAM on long sequences
+            use_gradient_checkpointing=False,     # Disabled: 79GB A100 has enough VRAM, avoids bfloat16/fp16 mismatch in backward
             random_state=42,
         )
         
