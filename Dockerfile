@@ -57,6 +57,11 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Final runtime stage
 FROM ${BASE_IMAGE}
 
+# Install curl for health checks
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # Copy the virtual environment from builder
