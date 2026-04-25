@@ -1,5 +1,6 @@
 # PROBLEM_STATEMENT
 
+<<<<<<< HEAD
 ## Theme: Multi-Agent Interactions
 
 **Project**: Autonomous Customer Support Multi-Agent Enterprise Network
@@ -20,6 +21,9 @@
 | 12  | Time Structure          | 5-7 minute presentation breakdown                             |
 
 ---
+=======
+## Theme: --- Multi-Agent Interactions ---
+>>>>>>> 13f80ee3811105a1ce89f9a4ec10b378668e565a
 
 ## 1. The Problem Statement
 
