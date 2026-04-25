@@ -106,7 +106,7 @@ class MultiAgentGRPOTrainer:
             random_state=42,
         )
         
-        print(f"✅ {agent_name} model ready (4-bit + LoRA adapters attached)")
+        print(f"✅ {agent_name} model ready (bfloat16 + LoRA adapters attached)")
         
         return model, tokenizer
 
