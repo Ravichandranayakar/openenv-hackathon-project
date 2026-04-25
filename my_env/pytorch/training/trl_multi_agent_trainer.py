@@ -92,8 +92,21 @@ class MultiAgentGRPOTrainer:
             load_in_4bit=True,
         )
         
-        model = FastLanguageModel.for_training(model)
-        print(f"✅ {agent_name} model ready (4-bit, LoRA)")
+        # CRITICAL: Must attach LoRA adapters BEFORE training on a 4-bit model.
+        # Without this, Transformers raises: "cannot fine-tune purely quantized models"
+        model = FastLanguageModel.get_peft_model(
+            model,
+            r=16,                          # LoRA rank — 16 is a good balance
+            target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
+                            "gate_proj", "up_proj", "down_proj"],
+            lora_alpha=16,
+            lora_dropout=0,                # Unsloth recommends 0 for speed
+            bias="none",
+            use_gradient_checkpointing="unsloth",  # Saves VRAM on long sequences
+            random_state=42,
+        )
+        
+        print(f"✅ {agent_name} model ready (4-bit + LoRA adapters attached)")
         
         return model, tokenizer
 
