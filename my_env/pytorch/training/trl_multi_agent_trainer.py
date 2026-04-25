@@ -187,13 +187,14 @@ class MultiAgentGRPOTrainer:
         training_args = GRPOConfig(
             output_dir=f"{output_dir}/{agent_name}",
             learning_rate=self.learning_rate,
-            per_device_train_batch_size=self.batch_size,   # Re-added: was silently ignored before
+            per_device_train_batch_size=self.batch_size,
             num_train_epochs=self.num_train_epochs,
             save_strategy="steps",
             save_steps=50,
             logging_steps=10,
-            fp16=True,    # matches float16 model dtype
+            fp16=True,
             gradient_accumulation_steps=self.gradient_accumulation_steps,
+            optim="adamw_torch",   # CRITICAL: bypass bitsandbytes 8-bit optimizer — libnvJitLink not available on CUDA 13
         )
         
         # TRL v1.2+ requires reward_funcs. We pass a function that reads
