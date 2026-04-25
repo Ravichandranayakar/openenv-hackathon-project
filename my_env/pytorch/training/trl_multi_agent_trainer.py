@@ -88,8 +88,8 @@ class MultiAgentGRPOTrainer:
         model, tokenizer = FastLanguageModel.from_pretrained(
             model_name=self.model_name,
             max_seq_length=2048,
-            dtype=torch.float16,
-            load_in_4bit=True,
+            dtype=torch.bfloat16,   # A100 supports bfloat16 natively — no bitsandbytes needed
+            load_in_4bit=False,     # 79GB A100 has plenty of VRAM for 8B in bfloat16 (~16GB)
         )
         
         # CRITICAL: Must attach LoRA adapters BEFORE training on a 4-bit model.
@@ -192,7 +192,7 @@ class MultiAgentGRPOTrainer:
             save_strategy="steps",
             save_steps=50,
             logging_steps=10,
-            fp16=True,
+            bf16=True,
             gradient_accumulation_steps=self.gradient_accumulation_steps,
         )
         
