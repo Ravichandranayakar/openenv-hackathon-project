@@ -1,6 +1,6 @@
 # PROBLEM_STATEMENT
 
-## Theme: --- Multi-Agent Interactions ---
+## Theme:  Multi-Agent Interactions 
 
 ## 1. The Problem Statement
 In modern enterprise environments, scaling customer support is a monumental challenge. Current AI support chatbots suffer from a "generalist" problem: a single LLM prompted to answer everything inevitably hallucinates on complex technical edge cases or fumbles sensitive billing disputes. When an angry customer writes, *"My database crashed and I see a duplicate charge,"* a standard chatbot fails because it cannot simultaneously act as an empathetic billing specialist and a rigorous technical engineer.
