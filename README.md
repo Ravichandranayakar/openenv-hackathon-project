@@ -36,28 +36,27 @@ The core underlying methodology uses reinforcement learning to fine-tune a singl
 When a support ticket arrives, the environment orchestrates a **3-Phase Negotiation Protocol**:
 
 ### Phase 1: Bidding 
-All 4 specialized agents independently analyze the ticket and submit a **confidence score (0.0-1.0)**:
-- **Technical Agent** (0.95 on database crashes, 0.15 on billing)
-- **Billing Agent** (0.92 on duplicate charges, 0.30 on API issues)
-- **Account Agent** (0.88 on password resets, 0.25 on payment issues)
-- **Manager Agent** (oversees bidding, enforces rules, validates escalations)
+All 4 specialized agents independently analyze the ticket and submit a **confidence score (0.0-1.0)**. The specialist dynamically scales its confidence based on the ticket's severity:
+- **Critical/High Severity:** Specialist bids high (0.95-1.00), asserting dominance.
+- **Medium/Low Severity:** Specialist bids cautiously (0.75-0.85).
+- **Manager Agent** oversees the bidding phase and enforces [0.0, 1.0] bounds logic.
 
-**Rewards:** +0.2 for correct specialization, +0.1 for calibrated confidence, -0.2 for wrong specialist
+**Rewards:** +0.30 for correct specialization, +0.15 for calibrated confidence, -0.20 for wrong specialist
 
 ### Phase 2: Execution
 The **highest valid bid wins**. Winning agent proposes a solution against the enterprise policy matrix:
-- Billing issue? Propose refund/escalation
-- Technical crash? Propose restart/sync/engineering escalation
-- Account security? Propose 2FA reset/account freeze
+- Billing issue? Propose `refund_duplicate_charge`
+- Technical crash? Propose `escalate_engineering`
+- Account security? Propose `escalate_security`
 
-**Rewards:** +0.2 for correct solution, -0.2 for wrong solution, +0.05 for format compliance
+**Rewards:** +0.30 for correct solution, -0.20 for wrong solution, +0.05 for format compliance
 
 ### Phase 3: Resolution 
-Manager Agent performs final quality assurance:
-- Is the ticket severity low/medium? → CLOSE
-- Is the ticket critical/complex? → ESCALATE to human
+Manager Agent performs final evaluation:
+- The environment dynamically cross-references the winning agent's submitted text against the backend dataset's ground truth.
+- Calculates and distributes all delayed 11-signal rewards for the entire episode trajectory.
 
-**Rewards:** +0.2 team success bonus, -0.1 team failure penalty, -0.15 for timeouts
+**Rewards:** +0.20 team success bonus, -0.10 team failure penalty
 
 ---
 
@@ -220,22 +219,22 @@ openenv-hackathon-project/
 
 ## The 11-Signal Reward System (Anti-Hacking)
 
-###  Positive Signals (+2.0 total max)
-1. **Correct Specialist Bid** (+0.2) - Agent with highest bid matches ticket category
-2. **Correct Solution** (+0.2) - Solution matches ground-truth policy matrix
-3. **Appropriate Confidence** (+0.1) - Bid calibrated to actual accuracy
+###  Positive Signals (✨ PERFECT +1.00 SCORE)
+1. **Correct Specialist Bid** (+0.30) - Agent with highest bid matches ticket category
+2. **Correct Solution** (+0.30) - Solution matches ground-truth policy matrix dynamically
+3. **Appropriate Confidence** (+0.15) - Bid calibrated to actual accuracy
 4. **Solution Format** (+0.05) - Response structure matches expectations
-5. **Team Success Bonus** (+0.2) - All agents rewarded if ticket resolves
+5. **Team Success Bonus** (+0.20) - All agents rewarded if ticket resolves
 
-###  Negative Signals (-0.90 total max)
-6. **Wrong Specialist** (-0.2) - Non-expert agent won the bid
-7. **Wrong Solution** (-0.2) - Solution violates policy
-8. **Overconfident** (-0.1) - Bid > actual accuracy (calibration penalty)
-9. **Team Failure** (-0.1) - Team failed to resolve
+###  Negative Signals (-0.80 total max)
+6. **Wrong Specialist** (-0.20) - Non-expert agent won the bid
+7. **Wrong Solution** (-0.20) - Winning agent proposed wrong solution string
+8. **Overconfident** (-0.10) - Bid > actual accuracy (calibration penalty)
+9. **Team Failure** (-0.10) - Team failed to resolve
 10. **Invalid Bid** (-0.05) - Confidence outside [0.0, 1.0]
-11. **Timeout** (-0.15) - Episode exceeded 10 steps
+11. **Timeout** (-0.15) - Episode exceeded max step limit
 
-**Design Goal:** No single signal dominates. Agents must learn nuanced behavior: when to bid high (specialization match), when to defer (low confidence), and how to collaborate (team bonuses).
+**Design Goal:** No single signal dominates. Agents must learn nuanced behavior: when to bid high based on ticket severity, when to defer, and how to collaborate.
 
 ---
 
