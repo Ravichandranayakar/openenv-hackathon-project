@@ -94,9 +94,9 @@ class MultiAgentNegotiationEnvironment(Environment):
   # (Following hackathon guide section 7: multiple independent rewards prevent gaming)
   REWARDS = {
     # Individual agent rewards
-    "correct_specialist_bid": 0.2,    # Agent bids correctly for their specialty
-    "correct_solution": 0.2,       # Solution is factually correct
-    "appropriate_confidence": 0.1,    # Confidence matches actual ability (not overconfident)
+    "correct_specialist_bid": 0.3,    # Agent bids correctly for their specialty
+    "correct_solution": 0.3,       # Solution is factually correct
+    "appropriate_confidence": 0.15,    # Confidence matches actual ability (not overconfident)
     "solution_format": 0.05,       # Solution follows required format
     
     # Team cooperation rewards
@@ -370,8 +370,20 @@ class MultiAgentNegotiationEnvironment(Environment):
 
   def _evaluate_solution(self) -> bool:
     """Check if winning agent's solution was correct."""
-    # Simple heuristic: check if agent category matches expected specialist
-    return self.winning_agent == self.expected_specialist
+    if not self.winning_agent: 
+        return False
+        
+    # Check if agent category matches expected specialist
+    is_correct_agent = self.winning_agent == self.expected_specialist
+    
+    # Get the exact solution string provided by the winning agent
+    provided_solution = self.agent_solutions.get(self.winning_agent.value, "").strip()
+    
+    # Dynamically check against the ground truth solutions from the database
+    correct_solutions = self.current_ticket.get("correct_solutions", [])
+    is_correct_action = provided_solution in correct_solutions
+    
+    return is_correct_agent and is_correct_action
 
   def _make_observation(
     self,

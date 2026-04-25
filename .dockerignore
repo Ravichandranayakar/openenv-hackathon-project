@@ -104,3 +104,6 @@ check_ui_root.py
 remove_emojis.py
 readme2.md
 cmd.txt
+test_perfect_run.py
+test_senario_files.md
+generate_cheat_sheet.py
