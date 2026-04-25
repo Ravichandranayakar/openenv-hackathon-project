@@ -172,20 +172,27 @@ class MultiAgentGRPOTrainer:
         training_args = GRPOConfig(
             output_dir=f"{output_dir}/{agent_name}",
             learning_rate=self.learning_rate,
-            per_device_train_batch_size=self.batch_size,
             num_train_epochs=self.num_train_epochs,
             save_strategy="steps",
             save_steps=50,
-            logging_steps=10,  # Logs reward signals every 10 steps — satisfies Guide Point 15
+            logging_steps=10,  # Logs reward signals every 10 steps
             fp16=True,
-            gradient_accumulation_steps=2,
+            gradient_accumulation_steps=getattr(self, 'gradient_accumulation_steps', 2),
         )
+        
+        # TRL v1.2+ requires reward_funcs. We pass a function that reads
+        # the pre-computed 11-signal rewards already baked into each dataset row.
+        def reward_func(completions, **kwargs):
+            """Return the pre-computed rewards for each completion."""
+            rewards = kwargs.get("reward", [1.0] * len(completions))
+            return list(rewards)
         
         trainer = GRPOTrainer(
             model=model,
-            tokenizer=tokenizer,
+            processing_class=tokenizer,
             args=training_args,
             train_dataset=dataset,
+            reward_funcs=[reward_func],
         )
         
         result = trainer.train()
