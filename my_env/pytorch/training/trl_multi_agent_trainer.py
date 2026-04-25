@@ -47,11 +47,13 @@ class MultiAgentGRPOTrainer:
         learning_rate: float = 1e-4,
         batch_size: int = 8,
         num_train_epochs: int = 3,
+        gradient_accumulation_steps: int = 2,
     ):
         self.model_name = model_name
         self.learning_rate = learning_rate
         self.batch_size = batch_size
         self.num_train_epochs = num_train_epochs
+        self.gradient_accumulation_steps = gradient_accumulation_steps
         
         # 4-Agent Negotiation Personas
         self.agent_names = ["technical", "billing", "account", "manager"]
