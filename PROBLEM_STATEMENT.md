@@ -1,24 +1,6 @@
 # PROBLEM_STATEMENT
 
 ## Theme: Multi-Agent Interactions
-**Project**: Autonomous Customer Support Multi-Agent Enterprise Network 
-
-| # | Section | What It Covers |
-|---|---------|----------------|
-| 1 | Elevator Pitch | 30-second version you can say to any judge |
-| 2 | Problem Statement | Why single-agent systems fail + why this is a hard RL problem |
-| 3 | Our Solution | Full 3-phase bidding protocol with JSON action schema |
-| 4 | Environment Design | API endpoints, observation format, episode termination |
-| 5 | 11-Signal Reward Matrix | Every signal explained with values and triggers |
-| 6 | Training Stack | Why GRPO over PPO, why one shared backbone over 4 models |
-| 7 | Process-Aware Feedback | Per-step rewards explained simply |
-| 8 | Curriculum Learning | Easy / Medium / Hard progression with examples |
-| 9 | Demo Script | Exact commands to run for judges, step by step |
-| 10 | Talking Points | Exact sentences to say on each scoring criteria |
-| 11 | Q&A Prep | 5 hardest questions with polished answers |
-| 12 | Time Structure | 5-7 minute presentation breakdown |
-
----
 
 ## 1. The Problem Statement
 In modern enterprise environments, scaling customer support is a monumental challenge. Current AI support chatbots suffer from a "generalist" problem: a single LLM prompted to answer everything inevitably hallucinates on complex technical edge cases or fumbles sensitive billing disputes. When an angry customer writes, *"My database crashed and I see a duplicate charge,"* a standard chatbot fails because it cannot simultaneously act as an empathetic billing specialist and a rigorous technical engineer.
