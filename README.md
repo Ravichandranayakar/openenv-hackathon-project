@@ -16,18 +16,52 @@ tags:
 
 # Autonomous Customer Support Multi-Agent Network
 
-This project demonstrates a Multi-Agent Enterprise Customer Support Network built on the OpenEnv framework. It utilizes a multi-agent negotiation system where four specialized LLM agents (Technical, Billing, Account, Manager) collaborate and bid on incoming customer tickets to resolve complex logic edge cases autonomously.
+> 🏆 **OpenEnv Hackathon Round 2 Submission** | Multi-Agent GRPO Training on NVIDIA A100 80GB
 
-The core underlying methodology uses reinforcement learning to fine-tune a single LLM to accurately assess its capabilities across different specializations, leveraging a comprehensive 11-signal reward policy to prevent reward hacking.
+This project demonstrates a **Multi-Agent Enterprise Customer Support Network** built on the OpenEnv framework. Four specialized LLM agents (Technical, Billing, Account, Manager) **negotiate via a confidence-bidding auction** to route and resolve enterprise support tickets — trained end-to-end using GRPO reinforcement learning.
+
+The agent that learns to correctly self-assess its own specialization **wins tickets and earns rewards**. Wrong specialists are penalized. This creates emergent specialization without explicit routing rules.
 
 **Core Technology Stack:**
-- **Environment**: OpenEnv (FastAPI, Python)
-- **RL Training**: TRL (Transformers Reinforcement Learning) via GRPO
-- **LLM Base**: Llama-3.2-1B-Instruct
-- **Optimization**: Unsloth (4-bit quantization)
+- **Environment**: OpenEnv (FastAPI, Python) — 3-phase bidding protocol
+- **RL Algorithm**: GRPO (Group Relative Policy Optimization) via TRL
+- **Base Model**: `unsloth/Meta-Llama-3.1-8B-Instruct` (trained in bfloat16 on A100)
+- **Fine-tuned Model**: [`RavichandraNayakar/openenv-grpo-merged`](https://huggingface.co/RavichandraNayakar/openenv-grpo-merged)
+- **LoRA Adapters**: [`RavichandraNayakar/openenv-multi-agent-grpo`](https://huggingface.co/RavichandraNayakar/openenv-multi-agent-grpo)
+- **Training Notebook**: [`notebooks/Multi_Agent_GRPO_Training_output.ipynb`](./notebooks/Multi_Agent_GRPO_Training_output.ipynb) ← Real A100 run with full output
 
-> ** Training Run Notebook:**  
->  View the Official Training Run on Google Colab (Link to be added on-site)
+---
+
+## 📊 Real Training Results (A100 GPU — GRPO)
+
+| Agent | Success Rate | Final Loss | Specialty |
+|-------|-------------|------------|----------|
+| **Technical** | ✅ **100.0%** | ~1.9e-08 | App crashes, bugs, API failures |
+| **Billing** | ⚠️ **67.0%** | ~1.1e-08 | Payments, refunds, invoice disputes |
+| **Account** | ✅ **100.0%** | ~2.6e-08 | Login, password reset, access issues |
+| **Manager** | ✅ **100.0%** | ~8.9e-09 | Escalation decisions, QA evaluation |
+
+> **Billing at 67%** represents the hardest alignment challenge — billing tickets often overlap with account issues, requiring the agent to learn fine-grained domain boundaries. This is meaningful difficulty, not a failure.
+
+### Training Curves
+
+![GRPO Multi-Agent Training Loss — Loss approaches near-zero across all 4 agents over 25 training steps](./image/download.png)
+*Loss curve: TRL GRPO training, 25 steps per agent, batch size 32, A100 80GB*
+
+![Multi-Agent Success Rate — Technical, Account, and Manager reach 100% alignment](./image/download%20(1).png)
+*Success rate per agent across training episodes — trained vs baseline comparison*
+
+![Agent Reward Improvement](./image/download%20(2).png)
+*Episode reward improvement showing emergent specialization*
+
+### Baseline vs Trained Comparison
+
+| Metric | Baseline (Untrained) | Trained (GRPO) | Delta |
+|--------|---------------------|----------------|-------|
+| Correct specialist selection | ~33% (random) | **91.8% avg** | **+58.8%** |
+| Episode reward | -0.05 to +0.10 | **+0.85 to +1.00** | **+0.90** |
+| Protocol compliance | Fails immediately | Passes all 3 phases | ✅ |
+| Reward hacking attempts | Blocked by 11-signal matrix | Blocked by 11-signal matrix | ✅ |
 
 ---
 
