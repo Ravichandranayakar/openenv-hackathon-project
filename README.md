@@ -332,7 +332,7 @@ All 11 API endpoints have complete examples in **[API_USAGE_GUIDE.md](my_env/API
 
 | Document | Purpose |
 |----------|---------|
-| [ROUND2_PROBLEM_STATEMENT.md](PROBLEM_STATEMENT.md) | Core problem definition & theme |
+| [PROBLEM_STATEMENT.md](PROBLEM_STATEMENT.md) | Core problem definition & theme |
 | [API_USAGE_GUIDE.md](my_env/API_USAGE_GUIDE.md) | Complete API documentation |
 
 ---
