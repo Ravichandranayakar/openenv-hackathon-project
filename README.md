@@ -464,15 +464,6 @@ openenv-hackathon-project/
 - `my_env/server/data/` → **Datasets**: Customer support tickets and edge cases
 - `scripts/` → **Entry Points**: Training, inference, evaluation scripts
 
-**Documentation:**
-- `ROUND2_*.md` → Round 2 hackathon-specific details
-- `README.md` → Main project overview (this file)
-- `GETTING_STARTED.md` → Quick setup guide
-
-**Tests & Validation:**
-- `tests/` → Full test suite (5+ test files)
-- `test_*.md` → Test scenario documentation
-
 **Outputs (Generated):**
 - `checkpoints_multi_agent/` → Fine-tuned agent models (after training)
 - `results/` → Metrics, plots, evaluation results
@@ -526,7 +517,7 @@ openenv push --name [YourUsername]/openenv-customer-support --token <hf_token>
 -  Full Hugging Face model cache
 -  Training datasets
 
-**Spaces URL:** `https://huggingface.co/spaces/[YourUsername]/openenv-customer-support`
+**Spaces URL:** `https://huggingface.co/spaces/RavichandraNayakar/customer_support_env`
 
 ### Docker Deployment
 
@@ -600,7 +591,7 @@ For more details, see [API_USAGE_GUIDE.md](my_env/API_USAGE_GUIDE.md) for comple
 
 ```bash
 # Use different port
-python -m uvicorn my_env.server.app:app --port 8001
+python -m uvicorn my_env.server.app:app --port 8000
 ```
 
 ### Issue: "Model download stuck"
