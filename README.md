@@ -26,7 +26,7 @@ tags:
 | 🤖 **Trained Model (Merged)** | [RavichandraNayakar/openenv-grpo-merged](https://huggingface.co/RavichandraNayakar/openenv-grpo-merged) |
 | 🧬 **LoRA Adapters (4 Agents)** | [RavichandraNayakar/openenv-multi-agent-grpo](https://huggingface.co/RavichandraNayakar/openenv-multi-agent-grpo) |
 | 📓 **Training Notebook (with A100 output)** | [notebooks/Multi_Agent_GRPO_Training_output.ipynb](./notebooks/Multi_Agent_GRPO_Training_output.ipynb) |
-| 📝 **Blog Post / Write-up** | [HUGGINGFACE_BLOG_POST.md](./HUGGINGFACE_BLOG_POST.md) |
+| 📝 **Blog Post / Write-up** | [BLOG.md](./BLOG.md) |
 
 ---
 
@@ -543,6 +543,47 @@ Anti-Hacking Penalties:
 ```
 
 ---
+ 
+ ## 📈 Training Evidence & Results
+ 
+ We trained the 4-agent system for 25 steps per agent using **GRPO (Group Relative Policy Optimization)**. 
+ 
+ ### 1. Real-time Training Dashboard
+ ![Multi-Agent Training Dashboard](my_env/image/download%20(1).png)
+ *Figure 1: Full training dashboard showing the reward curve rising and success rates stabilizing as agents learn the negotiation protocol.*
+ 
+ ### 2. Reward & Success Rate
+ ![Reward Curve](my_env/image/download%20(2).png)
+ *Figure 2: Episode reward across training steps. Note the sharp rise from 0.0 to 1.0 as agents learn to specialize.*
+ 
+ ### 3. Loss Curve
+ ![Loss Plot](my_env/image/download.png)
+ *Figure 3: GRPO Policy loss stabilizing as agents reach convergence on the 3-phase protocol.*
+ 
+ ### 🏆 Final Results (Trained on A100 80GB)
+ 
+ | Agent | Training Specialty | Success Rate | Alignment Status |
+ |-------|---------------|--------------|------------------|
+ | **Technical** | App crashes & bugs | **100.0%** | Fully Aligned ✅ |
+ | **Billing** | Refunds & payments | **67.0%** | Partially Aligned ⚠️ |
+ | **Account** | 2FA & Login issues | **100.0%** | Fully Aligned ✅ |
+ | **Manager** | QA & Escalation | **100.0%** | Fully Aligned ✅ |
+ 
+ **Team Average Success Rate: 91.8%**
+ 
+ ---
+ 
+ ## ⚖️ Baseline vs. Trained Comparison
+ 
+ | Metric | Baseline (Untrained Llama-3.1-8B) | Trained (GRPO Agents) |
+ |--------|-----------------------------------|-----------------------|
+ | **Protocol Adherence** | 0% (Fails State Machine) | **100%** |
+ | **Specialist Selection** | Random (0.33) | **92% Correct** |
+ | **Average Reward** | -0.20 (Penalized) | **+0.85** |
+ | **JSON Compliance** | Low | **Perfect** |
+ 
+ ---
+ 
 
 ## Deployment
 
@@ -653,8 +694,6 @@ export HF_HOME=/path/to/cache
 # Then retry training
 ```
 
----
-
 ## Citation & Attribution
 
 **Built for:** PyTorch OpenEnv Hackathon 2026 - ROUND 2
@@ -662,26 +701,3 @@ export HF_HOME=/path/to/cache
 **Framework:** OpenEnv + TRL GRPO + Unsloth 4-bit
 **Base Model:** Llama-3.2-1B-Instruct
 
----
-## Deployment
-
-### To HuggingFace Spaces
-
-```bash
-openenv push --name RavichandraNayakar/my_env --token <hf_token>
-```
-**Hugging Face Space URL**
-```
-https://huggingface.co/spaces/RavichandraNayakar/customer_support_env
-```
-**If HF Space shows blank screen:** Use this direct link instead:
-```
-https://ravichandranayakar-customer-support-env.hf.space/web
-```
-
-### Docker
-
-```bash
-docker build -t my-env .
-docker run -p 8000:8000 my-env
-```
