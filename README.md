@@ -473,22 +473,62 @@ openenv-hackathon-project/
 
 ## API Endpoints
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/health` | **GET** | Health check |
-| `/reset` | **POST** | Initialize a new episode and generate a random ticket |
-| `/step` | **POST** | Submit agent actions (bid, execute, evaluate) |
-| `/state` | **GET** | Retrieve the current state of the negotiation and active team score |
-| `/schema` | **GET** | Get expected OpenEnv action and observation JSON schemas |
-| `/api/agents/status` | **GET** | Get status of all 4 specialized agents (ROUND 2) |
-| `/api/agents/metrics` | **GET** | Get performance metrics per agent (ROUND 2) |
-| `/api/agents/{agent_name}/specialization` | **GET** | Get agent role details and specialization (ROUND 2) |
-| `/api/agents/bid` | **POST** | Manual bid submission for testing (ROUND 2) |
-| `/api/episodes/{episode_id}/agent-decisions` | **GET** | Get detailed per-episode agent decisions (ROUND 2) |
-| `/api/environment/config` | **GET** | Get 11-signal reward structure & anti-hacking safeguards (ROUND 2) |
-
 ###  **Complete API Documentation**
+
 For detailed request/response examples, workflow diagrams, and Python client examples, see **[API_USAGE_GUIDE.md](my_env/API_USAGE_GUIDE.md)**.
+
+| `/health` | GET | Health check — confirms server is running |
+| `/reset` | POST | Start new episode, loads a random support ticket |
+| `/step` | POST | Submit agent action → returns observation + reward |
+| `/state` | GET | Current episode state (phase, bids, winning agent, score) |
+
+### `/step` — Action Types & Reward Signals Triggered
+
+**Phase 1: Bidding** — All 3 specialists submit confidence scores
+
+| Action Type | Example Payload | Reward Triggered |
+|-------------|----------------|-----------------|
+| `technical_bid` | `{"action_type": "technical_bid", "confidence": 0.95}` | `+0.30` correct specialist, `+0.15` calibrated confidence |
+| `billing_bid` | `{"action_type": "billing_bid", "confidence": 0.05}` | `-0.20` wrong specialist (if ticket is technical) |
+| `account_bid` | `{"action_type": "account_bid", "confidence": 0.10}` | `+0.15` appropriate low confidence |
+| Any bid outside [0,1] | `{"confidence": 1.5}` | `-0.05` invalid bid penalty immediately |
+
+**Phase 2: Execution** — Winning agent provides solution
+
+| Action Type | Example Payload | Reward Triggered |
+|-------------|----------------|-----------------|
+| `technical_execute` | `{"action_type": "technical_execute", "category": "bug", "solution": "Requesting crash logs and stack trace"}` | `+0.30` correct solution, `+0.05` format compliance |
+| `billing_execute` | `{"action_type": "billing_execute", "category": "billing", "solution": "Processing refund for duplicate charge"}` | `+0.30` correct solution |
+| `account_execute` | `{"action_type": "account_execute", "category": "account", "solution": "Sending password reset link"}` | `+0.30` correct solution |
+| Wrong category | `{"category": "billing"}` on a bug ticket | `-0.20` wrong solution penalty |
+
+**Phase 3: Resolution** — Manager evaluates and closes
+
+| Action Type | Example Payload | Reward Triggered |
+|-------------|----------------|-----------------|
+| `manager_evaluate` | `{"action_type": "manager_evaluate", "should_escalate": false, "reason": "Issue resolved"}` | `+0.20` team success bonus (shared) |
+| Incorrect escalation | `{"should_escalate": true}` on a routine ticket | `-0.10` team failure penalty |
+
+### Full 11-Signal Reward Matrix
+
+```
+Individual Rewards:
+  correct_specialist_bid  → +0.30   Agent bids correctly for their specialty
+  correct_solution        → +0.30   Solution matches ground truth category
+  appropriate_confidence  → +0.15   Confidence calibrated to actual ability
+  solution_format         → +0.05   JSON format compliance
+
+Team Cooperation:
+  team_success_bonus      → +0.20   Shared reward when ticket resolved correctly
+
+Anti-Hacking Penalties:
+  wrong_specialist        → -0.20   Agent bid outside their specialty
+  wrong_solution          → -0.20   Solution incorrect for ticket category
+  overconfident           → -0.10   Bid >0.8 but solution was wrong
+  team_failure_penalty    → -0.10   Shared penalty on episode failure
+  invalid_bid             → -0.05   Confidence outside [0.0, 1.0]
+  timeout                 → -0.15   Exceeded MAX_STEPS_PER_EPISODE (10)
+```
 
 ---
 
