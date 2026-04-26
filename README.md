@@ -523,7 +523,6 @@ For detailed request/response examples, workflow diagrams, and Python client exa
 
 ### Full 11-Signal Reward Matrix
 
-```
 Individual Rewards:
   correct_specialist_bid  → +0.30   Agent bids correctly for their specialty
   correct_solution        → +0.30   Solution matches ground truth category
