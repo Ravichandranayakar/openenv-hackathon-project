@@ -144,18 +144,21 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
             color = agent_colors.get(agent, "#6b7280")
             r_color = "#22c55e" if reward >= 0 else "#ef4444"
             html += f"""
-            <div style='background:#111827; border-radius:6px; padding:10px 12px; margin-bottom:6px; border:1px solid #1f2937;'>
+            <div style='background:rgba(2, 6, 23, 0.4); border-radius:10px; padding:16px 20px; margin-bottom:10px; border:1px solid rgba(255, 255, 255, 0.05);'>
                 <div style='display:flex; justify-content:space-between; align-items:center;'>
-                    <div style='display:flex; align-items:center; gap:8px;'>
+                    <div style='display:flex; align-items:center; gap:12px;'>
                         <span style='color:#4b5563; font-size:11px; font-weight:700;'>#{step_num}</span>
-                        <span style='background:{color}22; color:{color}; font-size:10px; font-weight:700; padding:2px 7px; border-radius:4px; text-transform:uppercase;'>{agent}</span>
+                        <span style='background:{color}22; color:{color}; font-size:10px; font-weight:800; padding:2px 8px; border-radius:4px; text-transform:uppercase;'>{agent}</span>
                         <span style='color:#9ca3af; font-size:12px;'>{action.split("_", 1)[1] if "_" in action else action}</span>
                     </div>
-                    <span style='color:{r_color}; font-size:14px; font-weight:700;'>{reward:+.2f}</span>
+                    <span style='color:{r_color}; font-size:14px; font-weight:800;'>{reward:+.2f}</span>
                 </div>
-                {f'<div style="color:#6b7280; font-size:11px; margin-top:4px; padding-left:32px;">{reason}</div>' if reason else ""}
+                {f'<div style="color:#6b7280; font-size:11px; margin-top:6px; padding-left:32px; letter-spacing:0.02em;">{reason}</div>' if reason else ""}
             </div>"""
-        return html
+        
+        # Apply sliding (scrolling) after 5 logs
+        container_style = "max-height: 520px; overflow-y: auto; padding-right: 8px;" if len(history_state) >= 5 else ""
+        return f"<div class='custom-scrollbar' style='{container_style}'>{html}</div>"
 
     def render_reward_breakdown(obs):
         """Show the 11 reward functions that fired this episode — the key differentiator for judges."""
@@ -361,6 +364,12 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
         color: #f8fafc !important;
         border-radius: 8px !important;
     }
+
+    /* ── Custom Scrollbar (Blue Glass) ── */
+    .custom-scrollbar::-webkit-scrollbar { width: 6px !important; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2) !important; border-radius: 10px !important; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(14, 165, 233, 0.3) !important; border-radius: 10px !important; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(14, 165, 233, 0.5) !important; }
     """
 
     # ─────────────────────────────────────────────
@@ -443,6 +452,11 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
                     gr.HTML("<div style='font-size:11px; font-weight:700; color:#f8fafc; text-transform:uppercase; letter-spacing:0.08em; border-bottom:1px solid #1f2937; padding-bottom:6px; margin-bottom:10px;'>11-Signal Reward Breakdown</div>")
                     reward_breakdown_html = gr.HTML("<div style='color:#e2e8f0; font-size:11px; text-align:center; padding:20px;'>Appears after episode completes.</div>")
 
+                # FEEDBACK (Dynamic)
+                with gr.Group(elem_classes="glass-panel"):
+                    gr.HTML("<div style='font-size:11px; font-weight:700; color:#f8fafc; text-transform:uppercase; letter-spacing:0.08em; border-bottom:1px solid #1f2937; padding-bottom:6px; margin-bottom:10px;'>Environment Feedback</div>")
+                    feedback_html = gr.HTML("<div style='color:#94a3b8; font-size:13px; padding:24px; text-align:center; letter-spacing:0.03em;'>Ready for Phase 1.</div>")
+
             # RIGHT: Decision Log, Debug JSON
             with gr.Column(scale=1):
                 with gr.Group(elem_classes="glass-panel"):
@@ -453,9 +467,6 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
                     gr.HTML("<div style='font-size:11px; font-weight:700; color:#f8fafc; text-transform:uppercase; letter-spacing:0.08em; border-bottom:1px solid #1f2937; padding-bottom:6px; margin-bottom:10px;'>Debug JSON (Raw State)</div>")
                     raw_json = gr.Code(language="json", label="", interactive=False)
 
-        # ── 5. Footer (Feedback) ──
-        with gr.Group(elem_classes="glass-panel"):
-            feedback_html = gr.HTML("<div style='color:#e2e8f0; font-size:13px; padding:12px; text-align:center;'>Waiting for next agent move...</div>")
 
         # ─────────────────────────────────────────────
         # WIRING
