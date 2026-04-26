@@ -16,7 +16,19 @@ tags:
 
 # Autonomous Customer Support Multi-Agent Network
 
-> **Multi-Agent GRPO Training on NVIDIA A100 80GB**
+> 🏆 **OpenEnv Hackathon Round 2 Submission** | Multi-Agent GRPO Training on NVIDIA A100 80GB
+
+## 📌 Submission Links
+
+| Resource | Link |
+|----------|------|
+| 🚀 **Live Environment (HF Space)** | [spaces/RavichandraNayakar/customer_support_env](https://huggingface.co/spaces/RavichandraNayakar/customer_support_env) |
+| 🤖 **Trained Model (Merged)** | [RavichandraNayakar/openenv-grpo-merged](https://huggingface.co/RavichandraNayakar/openenv-grpo-merged) |
+| 🧬 **LoRA Adapters (4 Agents)** | [RavichandraNayakar/openenv-multi-agent-grpo](https://huggingface.co/RavichandraNayakar/openenv-multi-agent-grpo) |
+| 📓 **Training Notebook (with A100 output)** | [notebooks/Multi_Agent_GRPO_Training_output.ipynb](./notebooks/Multi_Agent_GRPO_Training_output.ipynb) |
+| 📝 **Blog Post / Write-up** | [HUGGINGFACE_BLOG_POST.md](./HUGGINGFACE_BLOG_POST.md) |
+
+---
 
 This project demonstrates a **Multi-Agent Enterprise Customer Support Network** built on the OpenEnv framework. Four specialized LLM agents (Technical, Billing, Account, Manager) **negotiate via a confidence-bidding auction** to route and resolve enterprise support tickets — trained end-to-end using GRPO reinforcement learning.
 
@@ -45,14 +57,14 @@ The agent that learns to correctly self-assess its own specialization **wins tic
 
 ### Training Curves
 
-![GRPO Multi-Agent Training Loss — Loss approaches near-zero across all 4 agents over 25 training steps](./image/download.png)
-*Loss curve: TRL GRPO training, 25 steps per agent, batch size 32, A100 80GB*
+![4-Panel Training Dashboard — Agent success rates (bar), multi-metric radar, log-loss depth, and GRPO reward convergence over 25 training steps](./my_env/image/download%20(1).png)
+*Master dashboard: Agent Success Rate (bar chart), Multi-Metric Radar, Training Log-Loss, and GRPO Alignment Convergence — all 4 agents on A100 80GB*
 
-![Multi-Agent Success Rate — Technical, Account, and Manager reach 100% alignment](./image/download%20(1).png)
-*Success rate per agent across training episodes — trained vs baseline comparison*
+![Multi-Agent Alignment Success Rate vs Baseline — all trained agents beat the 0.5 random baseline](./my_env/image/download%20(2).png)
+*Final success rate per agent vs 0.5 random baseline (red dashed line) — Technical, Account, and Manager reach 100%; Billing reaches 67%*
 
-![Agent Reward Improvement](./image/download%20(2).png)
-*Episode reward improvement showing emergent specialization*
+![TRL GRPO Training Loss — near-zero convergence across all 4 agents](./my_env/image/download.png)
+*Training loss (log scale): all 4 agents converge to ~1e-8 loss after 25 steps on A100*
 
 ### Baseline vs Trained Comparison
 

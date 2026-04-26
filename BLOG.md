@@ -24,8 +24,12 @@ The environment evaluates the outcome and calculates **11 Independent Reward Fun
 * `team_success_bonus`: +0.20 given to ALL agents if the ticket is resolved correctly, encouraging team coordination rather than greedy bidding.
 
 ## Why This Matters for Reinforcement Learning
-Training on this environment pushes an LLM beyond simple instruction-following. It forces the model to develop **strategic emergent behavior**. Through reinforcement learning (using `trl`), the model learns that artificially inflating its confidence (reward hacking) results in an `overconfident` penalty, while correctly deferring a task to a more suited team member yields a `team_success_bonus`.
+Training on this environment pushes an LLM beyond simple instruction-following. It forces the model to develop **strategic emergent behavior**. Through reinforcement learning (using `trl` + GRPO), the model learns that artificially inflating its confidence (reward hacking) results in an `overconfident` penalty, while correctly deferring a task to a more suited team member yields a `team_success_bonus`.
 
 This Multi-Agent Command Center demonstrates that the future of enterprise AI isn't just about making models smarter—it's about teaching them how to work together.
 
-[Check out the GitHub Repository](#) or [View the Google Colab Training Run](#)
+**Links:**
+* **GitHub Repository:** [RavichandraNayakar/openenv-hackathon-project](https://github.com/RavichandraNayakar/openenv-hackathon-project)
+* **Trained Model (Merged):** [RavichandraNayakar/openenv-grpo-merged](https://huggingface.co/RavichandraNayakar/openenv-grpo-merged)
+* **LoRA Adapters:** [RavichandraNayakar/openenv-multi-agent-grpo](https://huggingface.co/RavichandraNayakar/openenv-multi-agent-grpo)
+* **Training Notebook:** [notebooks/Multi_Agent_GRPO_Training_output.ipynb](./notebooks/Multi_Agent_GRPO_Training_output.ipynb)
