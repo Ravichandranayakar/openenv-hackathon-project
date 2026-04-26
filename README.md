@@ -290,14 +290,14 @@ openenv-hackathon-project/
 
 ## Multi-Agent Negotiation Features
 
- **4 Specialized LLM Agents** with TRL GRPO fine-tuning
- **11-Signal Reward System** for anti-hacking safeguards
- **3-Phase Negotiation Protocol** (Bidding → Execution → Resolution)
- **45+ Real-World Support Scenarios** (3 difficulty levels)
- **OpenEnv Compliant** interface for RL training
- **Unsloth 4-bit Quantization** for efficient GPU training
- **Full API Suite** (11 endpoints for monitoring, metrics, bidding)
- **Anti-Gaming Hardened**:
+- **4 Specialized LLM Agents** with TRL GRPO fine-tuning
+- **11-Signal Reward System** for anti-hacking safeguards
+- **3-Phase Negotiation Protocol** (Bidding → Execution → Resolution)
+- **45+ Real-World Support Scenarios** (3 difficulty levels)
+- **OpenEnv Compliant** interface for RL training
+- **Unsloth 4-bit Quantization** for efficient GPU training
+- **Full API Suite** (11 endpoints for monitoring, metrics, bidding)
+- **Anti-Gaming Hardened**:
   - Bid range validation [0.0, 1.0]
   - Bid history logging (timestamp, agent, confidence)
   - MAX_STEPS_PER_EPISODE = 10 timeout
