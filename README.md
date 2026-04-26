@@ -16,7 +16,7 @@ tags:
 
 # Autonomous Customer Support Multi-Agent Network
 
-> 🏆 **OpenEnv Hackathon Round 2 Submission** | Multi-Agent GRPO Training on NVIDIA A100 80GB
+> **Multi-Agent GRPO Training on NVIDIA A100 80GB**
 
 This project demonstrates a **Multi-Agent Enterprise Customer Support Network** built on the OpenEnv framework. Four specialized LLM agents (Technical, Billing, Account, Manager) **negotiate via a confidence-bidding auction** to route and resolve enterprise support tickets — trained end-to-end using GRPO reinforcement learning.
 
