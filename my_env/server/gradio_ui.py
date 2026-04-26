@@ -43,24 +43,24 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
         total_reward = obs.get("episode_reward", 0.0) or 0.0
         score = obs.get("episode_score", 0.0) or 0.0
         phase = obs.get("current_phase", obs.get("status", "—")).upper()
-        phase_color = {"BIDDING": "#0F766E", "EXECUTION": "#d97706", "RESOLUTION": "#7c3aed", "COMPLETE": "#16a34a", "ERROR": "#dc2626"}.get(phase, "#475569")
+        phase_color = {"BIDDING": "#0ea5e9", "EXECUTION": "#38bdf8", "RESOLUTION": "#7dd3fc", "COMPLETE": "#22c55e", "ERROR": "#dc2626"}.get(phase, "#94a3b8")
 
         return f"""
         <div style='display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:0;'>
-            <div style='background:#0d1f1e; border:1px solid #0F766E33; border-radius:8px; padding:14px; text-align:center;'>
-                <div style='font-size:11px; color:#6b7280; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;'>Step Reward</div>
+            <div style='background:rgba(2, 6, 23, 0.4); border:1px solid rgba(14, 165, 233, 0.2); border-radius:8px; padding:14px; text-align:center;'>
+                <div style='font-size:11px; color:#94a3b8; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;'>Step Reward</div>
                 <div style='font-size:24px; font-weight:700; margin-top:4px; color:{"#22c55e" if step_reward >= 0 else "#ef4444"};'>{step_reward:+.2f}</div>
             </div>
-            <div style='background:#0d1f1e; border:1px solid #0F766E33; border-radius:8px; padding:14px; text-align:center;'>
-                <div style='font-size:11px; color:#6b7280; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;'>Team Reward</div>
+            <div style='background:rgba(2, 6, 23, 0.4); border:1px solid rgba(14, 165, 233, 0.2); border-radius:8px; padding:14px; text-align:center;'>
+                <div style='font-size:11px; color:#94a3b8; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;'>Team Reward</div>
                 <div style='font-size:24px; font-weight:700; margin-top:4px; color:{"#22c55e" if total_reward >= 0 else "#ef4444"};'>{total_reward:.2f}</div>
             </div>
-            <div style='background:#0d1f1e; border:1px solid #0F766E33; border-radius:8px; padding:14px; text-align:center;'>
-                <div style='font-size:11px; color:#6b7280; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;'>Score</div>
-                <div style='font-size:24px; font-weight:700; margin-top:4px; color:#0F766E;'>{score*100:.0f}%</div>
+            <div style='background:rgba(2, 6, 23, 0.4); border:1px solid rgba(14, 165, 233, 0.2); border-radius:8px; padding:14px; text-align:center;'>
+                <div style='font-size:11px; color:#94a3b8; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;'>Score</div>
+                <div style='font-size:24px; font-weight:700; margin-top:4px; color:#0ea5e9;'>{score*100:.0f}%</div>
             </div>
-            <div style='background:#0d1f1e; border:1px solid {phase_color}55; border-radius:8px; padding:14px; text-align:center;'>
-                <div style='font-size:11px; color:#6b7280; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;'>Phase</div>
+            <div style='background:rgba(2, 6, 23, 0.4); border:1px solid {phase_color}55; border-radius:8px; padding:14px; text-align:center;'>
+                <div style='font-size:11px; color:#94a3b8; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;'>Phase</div>
                 <div style='font-size:14px; font-weight:700; margin-top:6px; color:{phase_color};'>{phase}</div>
             </div>
         </div>
@@ -132,7 +132,7 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
 
     def render_history(history_state):
         if not history_state:
-            return "<div style='color:#4b5563; font-size:13px; padding:20px; text-align:center;'>No actions yet. Start with Phase 1: Bidding.</div>"
+            return "<div style='color:#f8fafc; font-size:13px; padding:20px; text-align:center;'>No actions yet. Start with Phase 1: Bidding.</div>"
         agent_colors = {"technical": "#3b82f6", "billing": "#f59e0b", "account": "#8b5cf6", "manager": "#0F766E"}
         html = ""
         for h in reversed(history_state):
@@ -198,16 +198,11 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
         total_reward = obs.get("episode_reward", 0.0)
         total_color = "#22c55e" if total_reward >= 0 else "#ef4444"
         return f"""
-        <div style='border:1px solid #0F766E44; border-radius:8px; overflow:hidden;'>
-            <div style='background:#0F766E22; padding:8px 12px; border-bottom:1px solid #0F766E33;'>
-                <span style='font-size:11px; font-weight:700; color:#0d9488; text-transform:uppercase; letter-spacing:0.06em;'>11-Signal Reward Breakdown</span>
-            </div>
-            <div style='padding:10px;'>
-                {rows}
-                <div style='border-top:1px solid #1f2937; margin-top:8px; padding-top:8px; display:flex; justify-content:space-between;'>
-                    <span style='color:#6b7280; font-size:12px; font-weight:700;'>EPISODE TOTAL</span>
-                    <span style='color:{total_color}; font-size:14px; font-weight:700;'>{total_reward:+.3f}</span>
-                </div>
+        <div style='padding:4px; margin-top:4px;'>
+            {rows}
+            <div style='border-top:1px solid #1f2937; margin-top:8px; padding-top:8px; display:flex; justify-content:space-between;'>
+                <span style='color:#6b7280; font-size:12px; font-weight:700;'>EPISODE TOTAL</span>
+                <span style='color:{total_color}; font-size:14px; font-weight:700;'>{total_reward:+.3f}</span>
             </div>
         </div>
         """
@@ -288,11 +283,11 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
     # CSS
     # ─────────────────────────────────────────────
     custom_css = """
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
     /* ── Base ── */
     body, .gradio-container {
-        background: linear-gradient(135deg, #09090b 0%, #0f0f1a 50%, #1e1b4b 100%) !important;
+        background: radial-gradient(circle at top right, #0f172a 0%, #020617 100%) !important;
         min-height: 100vh !important;
         font-family: 'Inter', sans-serif !important;
     }
@@ -300,71 +295,72 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
 
     /* ── Glass Panel ── */
     .glass-panel {
-        background: rgba(255, 255, 255, 0.04) !important;
-        backdrop-filter: blur(16px) !important;
-        -webkit-backdrop-filter: blur(16px) !important;
+        background: rgba(15, 23, 42, 0.8) !important;
+        backdrop-filter: blur(20px) !important;
         border: 1px solid rgba(255, 255, 255, 0.08) !important;
         border-radius: 16px !important;
-        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
         padding: 20px !important;
         margin-bottom: 12px !important;
     }
 
-    /* ── Gradio Group overrides ── */
-    .gr-group {
-        background: rgba(255, 255, 255, 0.04) !important;
-        backdrop-filter: blur(12px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        border-radius: 14px !important;
-        box-shadow: 0 4px 24px rgba(0,0,0,0.5) !important;
-    }
-
-    /* ── Buttons ── */
+    /* ── GLASSY ORANGE BUTTONS ── */
     .gr-button {
         font-family: 'Inter', sans-serif !important;
-        font-weight: 700 !important;
-        border-radius: 8px !important;
-        letter-spacing: 0.03em !important;
-        transition: all 0.2s ease !important;
+        font-weight: 800 !important;
+        border-radius: 10px !important;
+        letter-spacing: 0.08em !important;
+        transition: all 0.3s ease !important;
+        text-transform: uppercase !important;
     }
+    
+    /* Primary Action - Glass Orange */
     .gr-button-primary {
-        background: linear-gradient(90deg, #00C9FF 0%, #00f2c3 100%) !important;
-        border: none !important;
-        color: #0a0a12 !important;
-        box-shadow: 0 0 20px rgba(0, 201, 255, 0.35) !important;
+        background: rgba(249, 115, 22, 0.15) !important;
+        backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(249, 115, 22, 0.4) !important;
+        color: #fb923c !important;
+        box-shadow: 0 4px 15px rgba(249, 115, 22, 0.1) !important;
     }
     .gr-button-primary:hover {
+        background: rgba(249, 115, 22, 0.3) !important;
+        border: 1px solid rgba(249, 115, 22, 0.7) !important;
         transform: translateY(-2px) !important;
-        box-shadow: 0 0 32px rgba(0, 201, 255, 0.55) !important;
-    }
-    .gr-button-secondary {
-        background: rgba(255,255,255,0.07) !important;
-        border: 1px solid rgba(255,255,255,0.14) !important;
-        color: #cbd5e1 !important;
-    }
-    .gr-button-secondary:hover {
-        background: rgba(255,255,255,0.12) !important;
-        transform: translateY(-1px) !important;
+        box-shadow: 0 8px 25px rgba(249, 115, 22, 0.2) !important;
+        color: #fff !important;
     }
 
-    /* ── Inputs ── */
+    /* Secondary Action - Light Dark Glass */
+    .gr-button-secondary {
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #94a3b8 !important;
+    }
+
+    /* ── BLUE ACCENTS (Primary) ── */
+    /* Slider Styling */
+    .gr-slider input[type=range] {
+        background: #020617 !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        height: 10px !important;
+        border-radius: 5px !important;
+    }
+    .gr-slider input[type=range]::-webkit-slider-thumb { 
+        background: #f8fafc !important; 
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.4) !important;
+        border: 2px solid #0ea5e9 !important;
+    }
+    
+    /* Input focus (Blue) */
+    input:focus, textarea:focus, select:focus { border-color: #0ea5e9 !important; box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2) !important; }
+
     .gr-form { background: transparent !important; border: none !important; }
-    .gr-label { color: #64748b !important; font-size: 11px !important; font-weight: 700 !important; letter-spacing: 0.06em !important; text-transform: uppercase !important; }
     input, textarea, select {
-        background: rgba(255,255,255,0.06) !important;
-        border: 1px solid rgba(255,255,255,0.1) !important;
-        color: #e2e8f0 !important;
+        background: rgba(15, 23, 42, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #f8fafc !important;
         border-radius: 8px !important;
     }
-
-    /* ── Slider ── */
-    .gr-slider input[type=range]::-webkit-slider-thumb { background: #00C9FF !important; }
-
-    /* ── Code block ── */
-    .gr-code { background: rgba(0,0,0,0.4) !important; border: 1px solid rgba(255,255,255,0.06) !important; border-radius: 10px !important; }
-
-    /* ── Dropdown ── */
-    .gr-dropdown { background: rgba(255,255,255,0.06) !important; border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 8px !important; color: #e2e8f0 !important; }
     """
 
     # ─────────────────────────────────────────────
@@ -374,98 +370,92 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
 
         history_state = gr.State([])
 
-        # ── Header ──
+        # ── 1. Heading ──
         gr.HTML("""
-        <div style='padding:20px 0 16px; border-bottom:1px solid #21262d; margin-bottom:20px;'>
-            <div style='display:flex; align-items:center; gap:12px;'>
-                <div style='width:36px; height:36px; background:linear-gradient(135deg,#0F766E,#0d9488); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px;'>🤖</div>
-                <div>
-                    <div style='font-size:20px; font-weight:700; color:#f0f6fc; letter-spacing:-0.02em;'>BARO AI — Multi-Agent Command Center</div>
-                    <div style='font-size:12px; color:#6b7280; margin-top:2px;'>3-Phase Bidding Protocol  ·  11 Independent Reward Functions  ·  OpenEnv</div>
+        <div style='padding:20px 0; border-bottom:1px solid #21262d; margin-bottom:24px;'>
+            <div style='display:flex; align-items:center; justify-content:center; gap:16px;'>
+                <div style='width:52px; height:52px; background:linear-gradient(135deg,#0F766E,#0d9488); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:28px; box-shadow: 0 0 20px rgba(15, 118, 110, 0.4);'>🤖</div>
+                <div style='text-align:center;'>
+                    <div style='font-size:36px; font-weight:900; color:#f8fafc; letter-spacing:0.15em; text-transform:uppercase; line-height:1.1;'>COMMAND CENTER</div>
+                    <div style='font-size:14px; color:#9ca3af; font-weight:600; text-transform:uppercase; letter-spacing:0.25em; margin-top:4px;'>Multi-Agent Negotiation Environment</div>
                 </div>
             </div>
         </div>
         """)
 
-        with gr.Row(equal_height=False):
+        # ── 2. Active Ticket (Top Full Width) ──
+        with gr.Group(elem_classes="glass-panel"):
+            gr.HTML("<div style='font-size:12px; font-weight:700; color:#f8fafc; text-transform:uppercase; letter-spacing:0.08em; border-bottom:1px solid #1f2937; padding-bottom:8px; margin-bottom:12px;'>Current Ticket Context</div>")
+            ticket_html = gr.HTML("<div style='color:#e2e8f0; font-size:13px; padding:30px; text-align:center;'>Click NEW EPISODE to begin.</div>")
 
-            # ═══════════════════════════
-            # LEFT COLUMN — Control Panel
-            # ═══════════════════════════
-            with gr.Column(scale=1, min_width=200, elem_classes="glass-panel"):
-
-                with gr.Group():
-                    gr.HTML("<div style='font-size:12px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;'>Episode Control</div>")
-                    reset_btn = gr.Button(" NEW EPISODE", variant="primary", size="sm")
-                    state_btn = gr.Button(" GET STATE", variant="secondary", size="sm")
-
-                with gr.Group():
-                    gr.HTML("<div style='font-size:12px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;'>Live Scoreboard</div>")
-                    scoreboard_html = gr.HTML("<div style='color:#4b5563; font-size:12px; text-align:center; padding:20px;'>Start an episode</div>")
-
-                with gr.Group():
-                    gr.HTML("<div style='font-size:12px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;'>Agent Status</div>")
-                    agent_status_html = gr.HTML("<div style='color:#4b5563; font-size:12px; text-align:center; padding:20px;'>Start an episode</div>")
-
-            # ═══════════════════════════
-            # CENTER COLUMN — Ticket + Action
-            # ═══════════════════════════
-            with gr.Column(scale=2, min_width=380, elem_classes="glass-panel"):
-
-                with gr.Group():
-                    gr.HTML("<div style='font-size:12px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;'>Active Ticket</div>")
-                    ticket_html = gr.HTML("<div style='color:#4b5563; font-size:13px; padding:40px; text-align:center;'>Click NEW EPISODE to load a ticket.</div>")
-
-                with gr.Group():
-                    gr.HTML("<div style='font-size:12px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:14px;'>Agent Action</div>")
-
-                    agent_action = gr.Dropdown(
-                        choices=[
-                            "Technical Bid", "Billing Bid", "Account Bid",
-                            "Technical Execute", "Billing Execute", "Account Execute",
-                            "Manager Evaluate"
-                        ],
-                        value="Technical Bid",
-                        label="Select Agent + Action",
+        # ── 3. Agent Action & Controls ──
+        with gr.Group(elem_classes="glass-panel"):
+            gr.HTML("<div style='font-size:12px; font-weight:700; color:#f8fafc; text-transform:uppercase; letter-spacing:0.08em; border-bottom:1px solid #1f2937; padding-bottom:8px; margin-bottom:12px;'>Agent Interaction</div>")
+            
+            with gr.Row():
+                agent_action = gr.Dropdown(
+                    choices=[
+                        "Technical Bid", "Billing Bid", "Account Bid",
+                        "Technical Execute", "Billing Execute", "Account Execute",
+                        "Manager Evaluate"
+                    ],
+                    value="Technical Bid",
+                    label="Select Agent + Action",
+                    scale=1
+                )
+                
+                # PHASE 1: Bidding — shows slider
+                with gr.Column(visible=True, scale=2) as row_bid:
+                    confidence = gr.Slider(
+                        minimum=0.0, maximum=1.0, value=0.85, step=0.01,
+                        label="Confidence Score (0.0 to 1.0)"
+                    )
+                
+                # PHASE 2: Execution — shows solution
+                with gr.Column(visible=False, scale=2) as row_execute:
+                    solution = gr.Textbox(
+                        label="Proposed Solution",
+                        placeholder="e.g. Reset password via email verification link",
+                        lines=1
                     )
 
-                    # PHASE 1: Bidding — shows slider only
-                    with gr.Row(visible=True) as row_bid:
-                        confidence = gr.Slider(
-                            minimum=0.0, maximum=1.0, value=0.85, step=0.01,
-                            label="Confidence Score (0.0 = Not Sure → 1.0 = Certain)"
-                        )
+            # BUTTONS ROW
+            with gr.Row():
+                reset_btn = gr.Button(" NEW EPISODE", variant="primary")
+                step_btn = gr.Button("▶ EXECUTE ACTION", variant="primary")
+                state_btn = gr.Button(" GET STATE", variant="secondary")
 
-                    # PHASE 2: Execution — shows solution textbox only
-                    with gr.Row(visible=False) as row_execute:
-                        solution = gr.Textbox(
-                            label="Proposed Solution",
-                            placeholder="e.g. Reset password via email verification link",
-                            lines=2
-                        )
+        # ── 4. Metrics Dashboard (Two Columns) ──
+        with gr.Row(equal_height=False):
+            
+            # LEFT: Scoreboard, Status, Rewards
+            with gr.Column(scale=1):
+                with gr.Group(elem_classes="glass-panel"):
+                    gr.HTML("<div style='font-size:11px; font-weight:700; color:#f8fafc; text-transform:uppercase; letter-spacing:0.08em; border-bottom:1px solid #1f2937; padding-bottom:6px; margin-bottom:10px;'>Live Scoreboard</div>")
+                    scoreboard_html = gr.HTML("<div style='color:#e2e8f0; font-size:12px; text-align:center; padding:10px;'>—</div>")
+                
+                with gr.Group(elem_classes="glass-panel"):
+                    gr.HTML("<div style='font-size:11px; font-weight:700; color:#f8fafc; text-transform:uppercase; letter-spacing:0.08em; border-bottom:1px solid #1f2937; padding-bottom:6px; margin-bottom:10px;'>Agent Status</div>")
+                    agent_status_html = gr.HTML("<div style='color:#e2e8f0; font-size:12px; text-align:center; padding:10px;'>—</div>")
+                
+                # REWARD BOX
+                with gr.Group(elem_classes="glass-panel"):
+                    gr.HTML("<div style='font-size:11px; font-weight:700; color:#f8fafc; text-transform:uppercase; letter-spacing:0.08em; border-bottom:1px solid #1f2937; padding-bottom:6px; margin-bottom:10px;'>11-Signal Reward Breakdown</div>")
+                    reward_breakdown_html = gr.HTML("<div style='color:#e2e8f0; font-size:11px; text-align:center; padding:20px;'>Appears after episode completes.</div>")
 
-                    step_btn = gr.Button("▶  EXECUTE ACTION", variant="primary")
-
-                with gr.Group():
-                    gr.HTML("<div style='font-size:12px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px;'>Environment Feedback</div>")
-                    feedback_html = gr.HTML("<div style='color:#4b5563; font-size:13px; padding:16px; background:#111827; border-radius:8px;'>Waiting for action...</div>")
-
-            # ═══════════════════════════
-            # RIGHT COLUMN — Decision Log
-            # ═══════════════════════════
-            with gr.Column(scale=1, min_width=260, elem_classes="glass-panel"):
-
-                with gr.Group():
-                    gr.HTML("<div style='font-size:12px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;'>Decision Log</div>")
-                    history_html = gr.HTML("<div style='color:#4b5563; font-size:12px; text-align:center; padding:20px;'>No actions yet.</div>")
-
-                with gr.Group():
-                    gr.HTML("<div style='font-size:12px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px;'>11-Signal Reward Breakdown</div>")
-                    reward_breakdown_html = gr.HTML("<div style='color:#4b5563; font-size:11px; text-align:center; padding:16px;'>Appears after episode completes.</div>")
-
-                with gr.Group():
-                    gr.HTML("<div style='font-size:12px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px;'>Debug JSON</div>")
+            # RIGHT: Decision Log, Debug JSON
+            with gr.Column(scale=1):
+                with gr.Group(elem_classes="glass-panel"):
+                    gr.HTML("<div style='font-size:11px; font-weight:700; color:#f8fafc; text-transform:uppercase; letter-spacing:0.08em; border-bottom:1px solid #1f2937; padding-bottom:6px; margin-bottom:10px;'>Decision Log</div>")
+                    history_html = gr.HTML("<div style='color:#e2e8f0; font-size:12px; text-align:center; padding:10px;'>No actions yet.</div>")
+                
+                with gr.Group(elem_classes="glass-panel"):
+                    gr.HTML("<div style='font-size:11px; font-weight:700; color:#f8fafc; text-transform:uppercase; letter-spacing:0.08em; border-bottom:1px solid #1f2937; padding-bottom:6px; margin-bottom:10px;'>Debug JSON (Raw State)</div>")
                     raw_json = gr.Code(language="json", label="", interactive=False)
+
+        # ── 5. Footer (Feedback) ──
+        with gr.Group(elem_classes="glass-panel"):
+            feedback_html = gr.HTML("<div style='color:#e2e8f0; font-size:13px; padding:12px; text-align:center;'>Waiting for next agent move...</div>")
 
         # ─────────────────────────────────────────────
         # WIRING
@@ -474,20 +464,29 @@ def build_gradio_app(app, web_manager, action_fields, metadata, is_chat_env, tit
 
         def step_with_breakdown(agent_action, confidence, solution, history_state):
             results = list(step_action(agent_action, confidence, solution, history_state))
-            # results = [ticket_html, scoreboard_html, agent_status_html, feedback_html, history_html, history_state, raw_json]
-            # We need to insert reward_breakdown_html at index 5
             obs_data = {}
             try:
                 raw = results[6]  # raw_json
                 obs_data = json.loads(raw).get("observation", {}) if raw else {}
             except Exception:
                 pass
-            results.insert(5, render_reward_breakdown(obs_data))
+            
+            # If episode is done, render the full list. Otherwise keep the "waiting" text.
+            is_done = obs_data.get("done", False)
+            if is_done:
+                # We strip the outer group from render_reward_breakdown since we now have a permanent heading
+                breakdown = render_reward_breakdown(obs_data)
+                # Just take the rows part if possible, or keep as is. 
+                # Let's simplify: render_reward_breakdown already has a heading. 
+                # I will update render_reward_breakdown to NOT include the outer heading.
+                results.insert(5, breakdown)
+            else:
+                results.insert(5, "<div style='color:#e2e8f0; font-size:11px; text-align:center; padding:20px; margin-top:4px;'>Appears after episode completes.</div>")
             return results
 
         def reset_with_breakdown():
             results = list(reset_env())
-            results.insert(5, "<div style='color:#4b5563; font-size:11px; text-align:center; padding:16px;'>Appears after episode completes.</div>")
+            results.insert(5, "<div style='color:#e2e8f0; font-size:11px; text-align:center; padding:20px; margin-top:4px;'>Appears after episode completes.</div>")
             return results
 
         def state_with_breakdown(history_state):
