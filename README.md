@@ -371,6 +371,8 @@ openenv-hackathon-project/
 │   ├── models.py                                 # Pydantic schema models
 │   ├── inference.py                              # Evaluator inference script
 │   ├── demo.py                                   # Demo script
+│   ├── test_perfect_run.py                       # OFFICIAL: Validation tool (Alignment)
+│   ├── test_end_to_end_4agents.py                # OFFICIAL: Validation tool (Negotiation)
 │   └── improved_agent_training.py                # Enhanced training script
 │
 ├── my_env/                                       # Main Package
@@ -422,9 +424,6 @@ openenv-hackathon-project/
 │       │
 │       ├── data/                                 # Ground-Truth Datasets
 │       │   ├── tickets.py                        # Ticket definitions & severity rules
-│       │   ├── tickets.json                      # Sample tickets dataset
-│       │   ├── multi_agent_tickets.json          # Multi-agent training tickets
-│       │   ├── edge_cases.json                   # Edge case scenarios
 │       │   └── __init__.py
 │       │
 │       ├── logic/                                # Business Logic
@@ -463,9 +462,6 @@ openenv-hackathon-project/
 │   ├── openenv_my_env.egg-info/                  # Package metadata
 │   └── .venv/                                    # Virtual environment
 │
-└── Utility Files
-    ├── cmd.txt                                   # Command reference
-    └── readme2.md                                # Alternative documentation
 ```
 
 ### Key Directory Descriptions
