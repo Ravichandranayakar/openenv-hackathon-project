@@ -584,8 +584,27 @@ Anti-Hacking Penalties:
  
  ---
  
-
-## Deployment
+ ## 🧪 Validation & Environment Verification
+ 
+ We have included two specialized validation scripts that allow judges to verify the multi-agent negotiation logic and reward system manually.
+ 
+ ### 1. Perfect Run Test (Positive Alignment)
+ This script demonstrates how the environment perfectly rewards agents when they follow the protocol, identify the correct specialist, and solve the ticket.
+ ```bash
+ python test_perfect_run.py
+ ```
+ **What it proves:** Verifies that the 11 independent reward functions correctly calculate maximum positive reinforcement (+1.0) for optimal team behavior.
+ 
+ ### 2. End-to-End Negotiation Test
+ This script runs a full episode from scratch, demonstrating the phase transitions from Bidding → Execution → Resolution.
+ ```bash
+ python test_end_to_end_4agents.py
+ ```
+ **What it proves:** Verifies the 4-agent state machine, manager selection logic, and successful outcome resolution.
+ 
+ ---
+ 
+ ## Deployment
 
 ### HuggingFace Spaces (ROUND 2 Submission)
 
