@@ -16,7 +16,7 @@ tags:
 
 # Autonomous Customer Support Multi-Agent Network
 
-> 🏆 **OpenEnv Hackathon Round 2 Submission** | Multi-Agent GRPO Training on NVIDIA A100 80GB
+> 🏆 Multi-Agent GRPO Training on NVIDIA A100 80GB
 
 ## 📌 Submission Links
 
