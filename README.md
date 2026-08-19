@@ -22,11 +22,11 @@ tags:
 
 | Resource | Link |
 |----------|------|
-| 🚀 **Live Environment (HF Space)** | [spaces/RavichandraNayakar/customer_support_env](https://huggingface.co/spaces/RavichandraNayakar/customer_support_env) |
-| 🤖 **Trained Model (Merged)** | [RavichandraNayakar/openenv-grpo-merged](https://huggingface.co/RavichandraNayakar/openenv-grpo-merged) |
-| 🧬 **LoRA Adapters (4 Agents)** | [RavichandraNayakar/openenv-multi-agent-grpo](https://huggingface.co/RavichandraNayakar/openenv-multi-agent-grpo) |
-| 📓 **Training Notebook (with A100 output)** | [notebooks/Multi_Agent_GRPO_Training_output.ipynb](./notebooks/Multi_Agent_GRPO_Training_output.ipynb) |
-| 📝 **Blog Post / Write-up** | [BLOG.md](./BLOG.md) |
+|  **Live Environment (HF Space)** | [spaces/RavichandraNayakar/customer_support_env](https://huggingface.co/spaces/RavichandraNayakar/customer_support_env) |
+|  **Trained Model (Merged)** | [RavichandraNayakar/openenv-grpo-merged](https://huggingface.co/RavichandraNayakar/openenv-grpo-merged) |
+|  **LoRA Adapters (4 Agents)** | [RavichandraNayakar/openenv-multi-agent-grpo](https://huggingface.co/RavichandraNayakar/openenv-multi-agent-grpo) |
+|  **Training Notebook (with A100 output)** | [notebooks/Multi_Agent_GRPO_Training_output.ipynb](./notebooks/Multi_Agent_GRPO_Training_output.ipynb) |
+|  **Blog Post / Write-up** | [BLOG.md](./BLOG.md) |
 
 ---
 
