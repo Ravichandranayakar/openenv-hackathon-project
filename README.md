@@ -16,9 +16,9 @@ tags:
 
 # Autonomous Customer Support Multi-Agent Network
 
-> 🏆 Multi-Agent GRPO Training on NVIDIA A100 80GB
+>  Multi-Agent GRPO Training on NVIDIA A100 80GB
 
-## 📌 Submission Links
+## Submission Links
 
 | Resource | Link |
 |----------|------|
@@ -265,7 +265,7 @@ openenv-hackathon-project/
 
 ## The 11-Signal Reward System (Anti-Hacking)
 
-###  Positive Signals (✨ PERFECT +1.00 SCORE)
+###  Positive Signals ( PERFECT +1.00 SCORE)
 1. **Correct Specialist Bid** (+0.30) - Agent with highest bid matches ticket category
 2. **Correct Solution** (+0.30) - Solution matches ground-truth policy matrix dynamically
 3. **Appropriate Confidence** (+0.15) - Bid calibrated to actual accuracy
@@ -540,7 +540,7 @@ Anti-Hacking Penalties:
 
 ---
  
- ## 📈 Training Evidence & Results
+ ##  Training Evidence & Results
  
  We trained the 4-agent system for 25 steps per agent using **GRPO (Group Relative Policy Optimization)**. 
  
@@ -556,7 +556,7 @@ Anti-Hacking Penalties:
  ![Loss Plot](my_env/image/download.png)
  *Figure 3: GRPO Policy loss stabilizing as agents reach convergence on the 3-phase protocol.*
  
- ### 🏆 Final Results (Trained on A100 80GB)
+ ###  Final Results (Trained on A100 80GB)
  
  | Agent | Training Specialty | Success Rate | Alignment Status |
  |-------|---------------|--------------|------------------|
@@ -569,7 +569,7 @@ Anti-Hacking Penalties:
  
  ---
  
- ## ⚖️ Baseline vs. Trained Comparison
+ ##  Baseline vs. Trained Comparison
  
  | Metric | Baseline (Untrained Llama-3.1-8B) | Trained (GRPO Agents) |
  |--------|-----------------------------------|-----------------------|
@@ -580,7 +580,7 @@ Anti-Hacking Penalties:
  
  ---
  
- ## 🧪 Validation & Environment Verification
+ ##  Validation & Environment Verification
  
  We have included two specialized validation scripts that allow judges to verify the multi-agent negotiation logic and reward system manually.
  
