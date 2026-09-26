@@ -602,7 +602,7 @@ Anti-Hacking Penalties:
  
  ## Deployment
 
-### HuggingFace Spaces (ROUND 2 Submission)
+### HuggingFace Spaces 
 
 Deploy the environment to HuggingFace Spaces for judges to interact with:
 
